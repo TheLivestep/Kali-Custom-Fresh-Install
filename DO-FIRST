@@ -4,7 +4,8 @@
     sudo systemctl enable ssh
 3. ssh-keygen
 4. Change IP in Inventory (Hosts) file
-5. Add ssh connection to know hosts
+5. Change Kali_user variable.
+6. Add ssh connection to know hosts
     ssh livestep@192.168.220.159 and click yes
-6. run the follow command in git folder
+7. run the follow command in git folder
     ansible-playbook main.yml -i ./hosts --ask-pass --ask-become-pass
