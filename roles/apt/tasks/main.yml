@@ -1,0 +1,4 @@
+---
+
+- name: Install Binaries APT
+  ansible.builtin.import_tasks: packages.yml

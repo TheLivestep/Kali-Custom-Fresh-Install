@@ -1,0 +1,4 @@
+---
+
+- name: Install Pipx Tools
+  ansible.builtin.import_tasks: pip.yml

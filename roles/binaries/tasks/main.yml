@@ -1,0 +1,4 @@
+---
+
+- name: Install Binaries 
+  ansible.builtin.import_tasks: binaries.yml

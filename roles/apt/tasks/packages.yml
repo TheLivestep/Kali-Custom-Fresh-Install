@@ -1,0 +1,11 @@
+---
+
+- name: Install Packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: yes
+    name: "{{ item }}"
+    state: latest
+    autoclean: true
+  loop: "{{ packages }}"
+

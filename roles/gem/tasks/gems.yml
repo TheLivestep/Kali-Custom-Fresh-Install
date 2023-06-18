@@ -1,0 +1,8 @@
+---
+
+- name: Install GEMS
+  become: true
+  gem:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ gems }}"

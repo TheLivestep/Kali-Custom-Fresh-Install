@@ -1,0 +1,67 @@
+---
+
+- name: Create a directory if it does not exist
+  become: true
+  ansible.builtin.file:
+    path: /opt/bin
+    state: directory
+    mode: '0755'
+
+- name: "Install git repos"
+  become: true
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.path }}"
+  loop: "{{ git_repos }}"
+
+- name: "Copying python script to download github releases"
+  copy:
+    src: "files/githubdownload.py"
+    dest: "/opt/bin/githubdownload.py"
+    owner: root
+    group: root
+    mode: 0755
+  become: true
+  become_method: sudo
+
+- name: "Downloading github releases"
+  become: true
+  shell: "python3 /opt/bin/githubdownload.py {{ item.repo }} {{ item.regex }} {{ item.location }}"
+  loop: "{{ git_releases }}"
+  async: 45
+  poll: 0
+
+- name: "Change permissions file Recursively"
+  become: true
+  ansible.builtin.file:
+    path: /opt/bin
+    state: directory
+    recurse: yes
+    mode: '0755'
+
+- name: "Fix /opt/bin Tools permissions"
+  become: true
+  shell: "chmod +x /opt/bin/*"
+
+- name: "Cloning Kerbrute Repo"
+  git:
+    repo: "https://github.com/ropnop/kerbrute"
+    dest: "/tmp/kerbrute"
+
+- name: "Building Kerbrute"
+  shell: |
+    cd /tmp/kerbrute
+    go build
+
+- name: "Moving Kerbrute to bin"
+  become: true
+  copy:
+    remote_src: true
+    src: "/tmp/kerbrute/kerbrute"
+    dest: "/usr/bin/"
+    mode: 0755
+
+- name: "Delete Kerbrute Directory"
+  ansible.builtin.file:
+    path: /tmp/kerbrute
+    state: absent

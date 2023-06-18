@@ -1,0 +1,4 @@
+---
+
+- name: Custom ZSHRC
+  ansible.builtin.import_tasks: env.yml

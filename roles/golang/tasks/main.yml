@@ -1,0 +1,4 @@
+---
+
+- name: Install Golang Tools
+  ansible.builtin.import_tasks: gotools.yml

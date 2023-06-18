@@ -1,0 +1,17 @@
+---
+
+- name: Create a directory if it does not exist
+  become: true
+  ansible.builtin.file:
+    path: /opt/cheats
+    state: directory
+    mode: '0777'
+
+- name: Copy Cheatsheets to /opt/cheats
+  become: true
+  ansible.builtin.copy:
+    src: "files/cheatsheets"
+    dest: /opt/cheats
+    owner: root
+    group: root
+    mode: '0666'

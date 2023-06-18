@@ -1,0 +1,5 @@
+---
+
+- name: Installing Go Tools
+  ansible.builtin.command: go install "{{ item }}"
+  loop: "{{ gopackages }}"

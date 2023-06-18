@@ -1,0 +1,11 @@
+---
+
+- name: Download Pre-compiled Binaries -- Unzip Files
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ item.path }}"
+    dest: /usr/bin
+    remote_src: yes
+    group: "{{ group }}"
+    mode: 0755
+  loop: "{{ binaries }}"

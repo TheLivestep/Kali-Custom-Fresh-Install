@@ -1,0 +1,4 @@
+---
+
+- name: Install git repos 
+  ansible.builtin.import_tasks: git.yml

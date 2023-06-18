@@ -1,0 +1,26 @@
+---
+
+- name: "Kali Fresh Install"
+  hosts: kali
+  connection: ssh
+  roles:
+    - role: "roles/apt"
+    - role: "roles/gem"
+    - role: "roles/env"
+    - role: "roles/golang"
+    - role: "roles/git"
+    - role: "roles/pip"
+    - role: "roles/binaries"
+    - role: "roles/cheats"
+    - role: "roles/wallpapers"
+    - role: "roles/gantsign.visual-studio-code"
+      users:
+        - username: "{{ kali_user }}"
+          visual_studio_code_extensions:
+            - ms-python.python
+            - streetsidesoftware.code-spell-checker
+            - GitHub.copilot-nightly
+            - snyk-security.snyk-vulnerability-scanner
+            - ms-vscode-remote.remote-ssh
+            - redhat.vscode-yaml
+            - ms-azuretools.vscode-docker

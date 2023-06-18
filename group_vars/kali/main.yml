@@ -1,0 +1,54 @@
+kali_user: livestep
+group: livestep
+bin_folder: /opt/bin
+
+packages:
+- terminator
+- golang
+- pipx
+- chromium
+- ntpdate
+- seclists
+- dnsutils
+- gem
+- mimikatz
+- neo4j
+- npm
+- python3-venv
+- sublist3r
+- bloodhound
+
+gems:
+- evil-winrm
+- wpscan
+
+gopackages:
+- github.com/hakluke/hakrawler@latest
+- github.com/tomnomnom/httprobe@latest
+- github.com/tomnomnom/waybackurls@latest
+
+git_repos:
+- { path: "/opt/checkpwnedemails", repo: "https://github.com/Techno-Hwizrdry/checkpwnedemails.git" }
+- { path: "/opt/SharpCollection", repo: "https://github.com/Flangvik/SharpCollection" }
+
+git_releases:
+  - { repo: "jpillora/chisel",  regex: "_linux_amd64.gz", location: "/opt/bin/chisel" }
+  - { repo: "jpillora/chisel",  regex: "_windows_amd64.gz", location: "/opt/bin/chisel" }
+  - { repo: "carlospolop/PEASS-ng",  regex: "linpeas.sh", location: "/opt/bin/peas" }
+  - { repo: "carlospolop/PEASS-ng",  regex: "winPEASx64.exe", location: "/opt/bin/peas" }
+  - { repo: "WithSecureLabs/chainsaw",  regex: "chainsaw_all_", location: "/opt/bin" }
+  - { repo: "BloodHoundAD/BloodHound", regex: "BloodHound-linux-x64.zip", location: "/opt/bin/" }
+  - { repo: "frohoff/ysoserial",  regex: "ysoserial-all.jar", location: "/opt/bin" }
+  - { repo: "DominicBreuker/pspy",  regex: "pspy64", location: "/opt/bin" }
+  - { repo: "projectdiscovery/nuclei",  regex: "_linux_amd64.zip", location: "/opt/bin" }
+
+pip_install:
+- certipy-ad
+- ldap3
+- mitm6
+- python3-ldap
+- requests
+
+binaries:
+  - { name: 'aquatone', path: 'https://github.com/michenriksen/aquatone/releases/download/v1.7.0/aquatone_linux_amd64_1.7.0.zip' }
+  - { name: 'assetfinder', path: "https://github.com/tomnomnom/assetfinder/releases/download/v0.1.1/assetfinder-linux-amd64-0.1.1.tgz" }
