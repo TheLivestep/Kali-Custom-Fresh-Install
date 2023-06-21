@@ -1,11 +1,31 @@
-1. install ansible
-2. activate ssh
+1. activate ssh
     sudo systemctl start ssh
     sudo systemctl enable ssh
-3. ssh-keygen
-4. Change IP in Inventory (Hosts) file
-5. Change Kali_user variable.
-6. Add ssh connection to know hosts
+    ssh-keygen
+
+
+2. Change IP in Inventory (Hosts) file
+3. Change Kali_user variable.
+4. Add ssh connection to know hosts
     ssh livestep@192.168.220.159 and click yes
-7. run the follow command in git folder
+5. Install requirements
+    ansible-galaxy collection install community.general
+6. run the follow command in git folder
     ansible-playbook main.yml -i ./hosts --ask-pass --ask-become-pass
+
+
+
+TO DO:
+
+# APT
+
+- TOR
+- BITWARDEN
+- JOPLIN
+
+# FIREFOX EXTENSIONS
+
+- WAPPALIZER
+- FOXYPROXY
+- COOKIE-EDITOR
+- HACK-TOOLS
