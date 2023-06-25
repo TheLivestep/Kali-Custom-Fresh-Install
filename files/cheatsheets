@@ -1339,3 +1339,35 @@ docker-compose down		# Stop all containers and remove cont/vol/net
 docker-compose ps		# List the containers
 docker-compose top		# List the processes
 docker-compose down --rmi	local	# Remove images custom (all removes all the images created)
+
+# DOCKER SWARM
+
+docker swarm init		# Initialize docker swarm
+docker node ls			# List all available nodes
+
+docker service create alpine ping 8.8.8.8			# Create a service
+docker service ls		# list all the services
+docker service ps <ID> 		# Shows rhe containers in the service
+docker service update <ID> --replicas 3		# UPDATE TASKS for the service
+docker update --help		# shows options for update
+docker service update --help		# More options
+docker service rm <service>		# Delete all the containers of the service
+docker swarm init --advertise-addr <IP Address>		# Indicate an IP
+docker swarm join ..		# Add workers
+docker swarm join-token swarm		# get the token for manager
+docker node update --role manager <name node>		# update a worker to manager
+docker node ps		# list task in node
+docker network create --driver overlay mydrupal		# Creates an new network
+
+docker stack deploy -c file.yml <name>		#  INITIATES Stack
+docker stack ls 	# Shows all the stacks
+docker stack ps  <name>		#  List all thetasks in the nodes
+docker stack services <name>		# Show the replicas
+
+# DOCKER SECRETS
+
+docker secret create <name> <file.txt>		# import secret file
+echo "passw0rd" | docker secret create <name> -		# import secret text
+docker secrets ls		# List all the secrets
+docker service update --secret-rm		# Remove the secret
+docker stack rm <name>		# Also cleans the secrets file
