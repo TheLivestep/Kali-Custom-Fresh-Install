@@ -1256,3 +1256,86 @@ lazagne.exe wifi        # Wifi | Opensource | retrieve all the passwords stored
 crackmapexec ldap 192.168.1.172 -u administrator -p 'Ignite@123' --kdcHost 192.168.1.172 -M laps    # dump the credentials from LAPS in clear text
 Get-LAPSPasswords -DomainController 192.168.1.172 -Credential IGNITE\Administrator | Format-Table -AutoSize     # # dump the credentials from LAPS in clear text
 SharpLAPS.exe /user:IGNITE\Administrator /pass:Ignite@123 /host:192.168.1.172   # dump the credentials from LAPS in clear text   
+
+# DOCKER
+
+docker login		# loggint to HUB, can override to custom server
+$HOME/.docker/config.json		# auth configs
+docker logout		# removes authentication
+docker version		# Check version and that docker is running
+docker info 		# Shows most configuration values for the engine
+docker <command> (options)		# deprecated ex. docker run
+docker <command><subcommnad> (options)		# new command line structure ex. docker container run
+docker pull alpine			# Pull the alpine image
+docker container run --publish(or -p) 80:80 nginx		# install from docker hub nginx (USING RUN, ALWAYS STARTS A NEW CONTAINER)
+docker container run --publish 80:80 --detach(OR -d) nginx		# run in the background
+docker stop <containerid/name>		# stop Container )in WINDOWS, after ctrl-C, because still runs in the background)
+docker ps		# list containers (DEPRECATED)
+docker container ls			# list the active containers
+docker container ls -a 		# List the stopped containers
+docker container start <containerid/name>		# Starts a stopped container
+docker container run --publish 80:80 --detach --name webhost nginx		# run in the background with a name choose by us
+docker container logs <name> 		# Read logs
+docker container run --publish 80:80 --rm nginx		# Deletes on Quitting
+docker container rm <ID> <ID> <ID>		# delete variouis containers (THE CONTAINERS NEED TO BE STOPPED)
+docker container rm -f <ID>		# Force the delete, no need to be stopped
+docker container run -d -p 3306:3306 --name <name> -e MYSQL_RANDOM_ROOT_PASSWORD=true mysql			 # run a mysql instance with an environment variable (-e)See password in logs file
+
+docker container top <name>		# Shows processes list in one container
+docker container inspect <name>			# details of one container config
+docker container stats		# performance stats for all containers
+
+### DOCKER SHELL 
+
+docker container run -it 	# Starts a shell interactively
+docker container exec -it <name> bash		# run additional command in running container (Ex. opens a shell)
+docker container run -it --name proxy nginx bash		# opens a shell after container install
+docker container start -ai <name>		# attach
+
+## DOCKER NETWORK
+
+docker container port <container>		# Check ports used by the container
+docker container inspect --format "{{ .NetworkSettings.IPAddress }}" <name>		# shows IP of the container
+docker network ls 		# list all the networks
+docker network inspect		# inspect a network
+docker network create --driver		# Creates a network
+docker network connect		# attach a network to container
+docker network disconnect		# Detach a network from container
+docker container run --publish 80:80 --detach --name webhost --network <name-of-network> nginx		# Atribute a network
+docker network connect <Container-ID> <Conysiner-ID> 	# Associate 2 containers to a network (If in different networks, creates or adds new one)
+
+# DOCKER IMAGE
+docker image ls		# List all the images pulled
+docker image history <image_name>		# Shows layers of changes in the image
+docker image inspect		# Returns JSON metadata of the image
+docker image tag <name> <new tag>		# add new tag to image
+docker image tag <name> <name>:<tag> 		# add new tag to existing image
+docker image push <name>	# uploads a changed layers to image registry
+docker image prune <image> 		# Clean up images
+docker image prune -a		# Remove all images unnused
+
+# DOCKER BUILD
+
+docker image build -t <new-tag> .		# Build a image, dockerfile in the present directory
+docker image build 	-f <DOCKERFILE>		# Points to a Dockerfile
+
+# DOCKER SYSTEM
+
+docker system prune		# Clean up everything
+docker system df		# See space usage
+
+# DOCKER VOLUME
+
+docker volume ls		# List all the volumes
+docker container run -d -p 3306:3306 --name <name> -e MYSQL_RANDOM_ROOT_PASSWORD=true -v mysql-db:/var/lib/mysql mysql		# Name attribute to a volume
+docker volume inspect <image>		# Inspect metadata for the volume
+docker container run -d --name nginx -p 80:80 -v $(pwd):/usr/share/nginx/html nginx		# specify a bind address (In windows starts with //c )
+
+# DOCKER-COMPOSE
+
+docker-compose up		# Setup volumes/Networks and start all containers
+docker-compose up -d		# RUN in the Background
+docker-compose down		# Stop all containers and remove cont/vol/net
+docker-compose ps		# List the containers
+docker-compose top		# List the processes
+docker-compose down --rmi	local	# Remove images custom (all removes all the images created)
